@@ -1,0 +1,84 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- apcore-toolkit Starfish Logo - Utility Amber & Sandy Theme -->
+  
+  <defs>
+    <!-- Utility Amber Gradient - Professional & Solid -->
+    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FBBF24"/> <!-- Amber 400 -->
+      <stop offset="100%" stop-color="#D97706"/> <!-- Amber 600 -->
+    </linearGradient>
+  </defs>
+
+  <!-- Thick Outline for Chibi/Sticker style -->
+  <path d="M 256,60 
+           Q 275,60 290,170 
+           Q 300,180 420,180 
+           Q 440,180 435,205 
+           Q 430,230 330,270 
+           Q 320,275 350,380 
+           Q 355,405 330,405 
+           Q 305,405 256,330 
+           Q 207,405 182,405 
+           Q 157,405 162,380 
+           Q 192,275 182,270 
+           Q 82,230 77,205 
+           Q 72,180 92,180 
+           Q 212,180 222,170 
+           Q 237,60 256,60 Z" 
+        fill="none" stroke="#451A03" stroke-width="12" stroke-linejoin="round"/>
+
+  <!-- Main Body Fill -->
+  <path d="M 256,60 
+           Q 275,60 290,170 
+           Q 300,180 420,180 
+           Q 440,180 435,205 
+           Q 430,230 330,270 
+           Q 320,275 350,380 
+           Q 355,405 330,405 
+           Q 305,405 256,330 
+           Q 207,405 182,405 
+           Q 157,405 162,380 
+           Q 192,275 182,270 
+           Q 82,230 77,205 
+           Q 72,180 92,180 
+           Q 212,180 222,170 
+           Q 237,60 256,60 Z" 
+        fill="url(#bodyGrad)"/>
+
+  <!-- Texture Dots (Representing the toolkit modules/components) -->
+  <g fill="#92400E" opacity="0.4">
+    <circle cx="256" cy="130" r="8"/>
+    <circle cx="215" cy="180" r="6"/>
+    <circle cx="297" cy="180" r="6"/>
+    <circle cx="340" cy="240" r="7"/>
+    <circle cx="172" cy="240" r="7"/>
+    <circle cx="256" cy="280" r="10"/>
+    <circle cx="220" cy="330" r="5"/>
+    <circle cx="292" cy="330" r="5"/>
+  </g>
+
+  <!-- Cute Face (Consistent with apflow manta ray) -->
+  <g>
+    <!-- Eyes -->
+    <circle cx="230" cy="225" r="12" fill="#451A03"/>
+    <circle cx="282" cy="225" r="12" fill="#451A03"/>
+    <!-- Eye Highlights -->
+    <circle cx="234" cy="221" r="4" fill="white"/>
+    <circle cx="286" cy="221" r="4" fill="white"/>
+    
+    <!-- Mouth (Cute smile) -->
+    <path d="M 245,245 Q 256,255 267,245" 
+          fill="none" stroke="#451A03" stroke-width="6" stroke-linecap="round"/>
+    
+    <!-- Pink Cheeks -->
+    <ellipse cx="200" cy="245" rx="15" ry="10" fill="#F472B6" opacity="0.4"/>
+    <ellipse cx="312" cy="245" rx="15" ry="10" fill="#F472B6" opacity="0.4"/>
+  </g>
+
+  <!-- Gills/Lines (Subtle tool indicators) -->
+  <g stroke="#451A03" stroke-width="3" stroke-linecap="round" opacity="0.15">
+    <line x1="245" y1="100" x2="267" y2="100"/>
+    <line x1="120" y1="205" x2="140" y2="205"/>
+    <line x1="372" y1="205" x2="392" y2="205"/>
+  </g>
+</svg>
