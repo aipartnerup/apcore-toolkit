@@ -1,0 +1,47 @@
+site_name: apcore-toolkit
+site_description: Shared scanner, schema extraction, and output toolkit for apcore framework adapters.
+repo_url: https://github.com/aipartnerup/apcore-toolkit
+repo_name: aipartnerup/apcore-toolkit
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Features:
+      - Overview: features/overview.md
+      - Smart Scanning: features/scanning.md
+      - OpenAPI Integration: features/openapi.md
+      - Pydantic Utilities: features/pydantic.md
+      - Output Writers: features/output-writers.md
+      - Formatting: features/formatting.md
+  - AI Enhancement: ai-enhancement.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - tables
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
