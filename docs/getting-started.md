@@ -27,7 +27,7 @@ This guide walks you through installing **apcore-toolkit** and using its core mo
 === "TypeScript"
 
     ```bash
-    npm install @anthropic/apcore-toolkit
+    npm install apcore-toolkit
     ```
 
 ---
@@ -65,7 +65,7 @@ The `BaseScanner` provides the foundation for extracting metadata from any frame
 === "TypeScript"
 
     ```typescript
-    import { BaseScanner, ScannedModule } from "@anthropic/apcore-toolkit";
+    import { BaseScanner, ScannedModule } from "apcore-toolkit";
 
     class MyScanner extends BaseScanner {
       scan(): ScannedModule[] {
@@ -139,7 +139,7 @@ Generates `.binding.yaml` files for `apcore.BindingLoader`.
 === "TypeScript"
 
     ```typescript
-    import { YAMLWriter } from "@anthropic/apcore-toolkit";
+    import { YAMLWriter } from "apcore-toolkit";
 
     const writer = new YAMLWriter();
     writer.write(modules, { outputDir: "./bindings" });
@@ -161,7 +161,7 @@ Generates decorator-based wrapper files for your language.
 === "TypeScript"
 
     ```typescript
-    import { TypeScriptWriter } from "@anthropic/apcore-toolkit";
+    import { TypeScriptWriter } from "apcore-toolkit";
 
     const writer = new TypeScriptWriter();
     writer.write(modules, { outputDir: "./generated" });
@@ -186,7 +186,7 @@ Registers modules directly into an active `apcore.Registry`.
 
     ```typescript
     import { Registry } from "@anthropic/apcore";
-    import { RegistryWriter } from "@anthropic/apcore-toolkit";
+    import { RegistryWriter } from "apcore-toolkit";
 
     const registry = new Registry();
     const writer = new RegistryWriter();
@@ -218,7 +218,7 @@ Flatten complex models into scalar keyword arguments, perfect for MCP (Model Con
 === "TypeScript"
 
     ```typescript
-    import { flattenParams, resolveTarget } from "@anthropic/apcore-toolkit";
+    import { flattenParams, resolveTarget } from "apcore-toolkit";
 
     // Resolve a target string to a callable
     const func = resolveTarget("myapp/views:createTask");
@@ -243,7 +243,7 @@ Extract JSON Schemas directly from OpenAPI operation objects.
 === "TypeScript"
 
     ```typescript
-    import { extractInputSchema, extractOutputSchema } from "@anthropic/apcore-toolkit/openapi";
+    import { extractInputSchema, extractOutputSchema } from "apcore-toolkit/openapi";
 
     const inputSchema = extractInputSchema(operation, openapiDoc);
     const outputSchema = extractOutputSchema(operation, openapiDoc);

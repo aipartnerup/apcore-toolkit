@@ -39,7 +39,7 @@ The `to_markdown()` function converts an arbitrary dictionary or list into a str
 === "TypeScript"
 
     ```typescript
-    import { toMarkdown } from "@anthropic/apcore-toolkit";
+    import { toMarkdown } from "apcore-toolkit";
 
     const userData = {
       name: "Alice",
@@ -91,7 +91,7 @@ The `enrich_schema_descriptions()` utility helps bridge the gap when a JSON Sche
 === "TypeScript"
 
     ```typescript
-    import { enrichSchemaDescriptions } from "@anthropic/apcore-toolkit";
+    import { enrichSchemaDescriptions } from "apcore-toolkit";
 
     const rawSchema = {
       type: "object",

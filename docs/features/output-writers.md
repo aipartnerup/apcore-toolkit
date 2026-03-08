@@ -23,7 +23,7 @@ Generates individual `.binding.yaml` files for each scanned module. These files 
 === "TypeScript"
 
     ```typescript
-    import { YAMLWriter } from "@anthropic/apcore-toolkit";
+    import { YAMLWriter } from "apcore-toolkit";
 
     const writer = new YAMLWriter();
     writer.write(modules, { outputDir: "./bindings" });
@@ -50,7 +50,7 @@ Generates source files containing decorator-based wrapper functions. This is use
 === "TypeScript"
 
     ```typescript
-    import { TypeScriptWriter } from "@anthropic/apcore-toolkit";
+    import { TypeScriptWriter } from "apcore-toolkit";
 
     const writer = new TypeScriptWriter();
     writer.write(modules, { outputDir: "./generated_apcore" });
@@ -79,7 +79,7 @@ Directly registers the scanned modules into an active `apcore.Registry` instance
 
     ```typescript
     import { Registry } from "@anthropic/apcore";
-    import { RegistryWriter } from "@anthropic/apcore-toolkit";
+    import { RegistryWriter } from "apcore-toolkit";
 
     const registry = new Registry();
     const writer = new RegistryWriter();

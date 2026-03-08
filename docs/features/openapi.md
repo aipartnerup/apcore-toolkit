@@ -50,8 +50,8 @@ This produces the flat `input_schema` required by the `ScannedModule`.
 === "TypeScript"
 
     ```typescript
-    import { extractInputSchema, extractOutputSchema } from "@anthropic/apcore-toolkit/openapi";
-    import { ScannedModule } from "@anthropic/apcore-toolkit";
+    import { extractInputSchema, extractOutputSchema } from "apcore-toolkit/openapi";
+    import { ScannedModule } from "apcore-toolkit";
 
     // Load an OpenAPI spec
     const openapiSpec = { ... };

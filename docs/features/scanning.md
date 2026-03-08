@@ -52,7 +52,7 @@ When implementing a custom scanner, you inherit from `BaseScanner`:
 === "TypeScript"
 
     ```typescript
-    import { BaseScanner, ScannedModule } from "@anthropic/apcore-toolkit";
+    import { BaseScanner, ScannedModule } from "apcore-toolkit";
 
     class MyScanner extends BaseScanner {
       scan(options?: { include?: RegExp }): ScannedModule[] {

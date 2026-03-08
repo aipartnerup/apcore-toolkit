@@ -42,7 +42,7 @@ AI agents and protocols like MCP (Model Context Protocol) interact best with fla
 
     ```typescript
     import { z } from "zod";
-    import { flattenParams } from "@anthropic/apcore-toolkit";
+    import { flattenParams } from "apcore-toolkit";
 
     const UserCreate = z.object({
       username: z.string(),
@@ -84,7 +84,7 @@ The `resolve_target()` function resolves a string reference into the actual call
 === "TypeScript"
 
     ```typescript
-    import { resolveTarget } from "@anthropic/apcore-toolkit";
+    import { resolveTarget } from "apcore-toolkit";
 
     // Dynamically load a callable
     const viewFunc = await resolveTarget("myapp/api/v1/users:createUser");
