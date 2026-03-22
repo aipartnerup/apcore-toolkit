@@ -1,7 +1,7 @@
 site_name: apcore-toolkit
 site_description: Shared scanner, schema extraction, and output toolkit for apcore framework adapters.
-repo_url: https://github.com/aipartnerup/apcore-toolkit
-repo_name: aipartnerup/apcore-toolkit
+repo_url: https://github.com/aiperceivable/apcore-toolkit
+repo_name: aiperceivable/apcore-toolkit
 
 theme:
   name: material

@@ -264,7 +264,7 @@ The toolkit includes a built-in `AIEnhancer` that calls any OpenAI-compatible lo
    ```
 3. **Run your scanner** with `--ai-enhance`: Missing descriptions, annotations, and schemas will be inferred automatically.
 
-For production use, we recommend **[apcore-refinery](https://github.com/aipartnerup/apcore-refinery)** which provides better prompts, model flexibility, and CI integration:
+For production use, we recommend **[apcore-refinery](https://github.com/aiperceivable/apcore-refinery)** which provides better prompts, model flexibility, and CI integration:
 
 ```bash
 apcore-refinery enhance ./bindings --model <your-preferred-model>
@@ -279,4 +279,4 @@ See the [AI Enhancement Guide](ai-enhancement.md) for the full `Enhancer` protoc
 - **[Features Overview](features/overview.md)** — Deep dive into all toolkit capabilities.
 - **[AI Enhancement Guide](ai-enhancement.md)** — Enhancer protocol, built-in AIEnhancer, and apcore-refinery.
 - **[Changelog](../CHANGELOG.md)** — See what's new in the latest release.
-- **[apcore Documentation](https://aipartnerup.github.io/apcore/)** — Learn more about the core framework.
+- **[apcore Documentation](https://aiperceivable.github.io/apcore/)** — Learn more about the core framework.

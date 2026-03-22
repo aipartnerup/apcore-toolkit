@@ -149,7 +149,7 @@ The toolkit exports a generic `Enhancer` protocol that any enhancement implement
 
 ## 5. Recommended: apcore-refinery
 
-For production-grade enhancement, we recommend **[apcore-refinery](https://github.com/aipartnerup/apcore-refinery)** — a dedicated tool with specialized prompts, flexible model selection, and CI integration.
+For production-grade enhancement, we recommend **[apcore-refinery](https://github.com/aiperceivable/apcore-refinery)** — a dedicated tool with specialized prompts, flexible model selection, and CI integration.
 
 ```bash
 # Scan with toolkit, then refine with apcore-refinery

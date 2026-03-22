@@ -96,7 +96,7 @@ Go beyond HTTP method heuristics. Analyze the function body for behavioral signa
 | `GET` with stable results, no auth-dependent data | `cacheable=True` |
 | `Paginator`, `LIMIT/OFFSET`, cursor tokens | `paginated=True` |
 
-Static analysis can detect some of these patterns. For ambiguous cases, the built-in [AIEnhancer](../ai-enhancement.md) or [apcore-refinery](https://github.com/aipartnerup/apcore-refinery) can assist with AI-based inference.
+Static analysis can detect some of these patterns. For ambiguous cases, the built-in [AIEnhancer](../ai-enhancement.md) or [apcore-refinery](https://github.com/aiperceivable/apcore-refinery) can assist with AI-based inference.
 
 ## Implementation Example
 

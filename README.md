@@ -5,29 +5,29 @@
 # apcore-toolkit
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://github.com/aipartnerup/apcore-toolkit-python)
-[![Python SDK](https://img.shields.io/badge/python_sdk-0.3.0-green)](https://github.com/aipartnerup/apcore-toolkit-python)
-[![TypeScript Version](https://img.shields.io/badge/typescript-5.0%2B-blue)](https://github.com/aipartnerup/apcore-toolkit-typescript)
-[![TypeScript SDK](https://img.shields.io/badge/typescript_sdk-0.3.0-green)](https://github.com/aipartnerup/apcore-toolkit-typescript)
-[![Rust Version](https://img.shields.io/badge/rust-1.70%2B-blue)](https://github.com/aipartnerup/apcore-toolkit-rust)
-[![Rust SDK](https://img.shields.io/badge/rust_sdk-0.3.0-green)](https://github.com/aipartnerup/apcore-toolkit-rust)
+[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://github.com/aiperceivable/apcore-toolkit-python)
+[![Python SDK](https://img.shields.io/badge/python_sdk-0.3.0-green)](https://github.com/aiperceivable/apcore-toolkit-python)
+[![TypeScript Version](https://img.shields.io/badge/typescript-5.0%2B-blue)](https://github.com/aiperceivable/apcore-toolkit-typescript)
+[![TypeScript SDK](https://img.shields.io/badge/typescript_sdk-0.3.0-green)](https://github.com/aiperceivable/apcore-toolkit-typescript)
+[![Rust Version](https://img.shields.io/badge/rust-1.70%2B-blue)](https://github.com/aiperceivable/apcore-toolkit-rust)
+[![Rust SDK](https://img.shields.io/badge/rust_sdk-0.3.0-green)](https://github.com/aiperceivable/apcore-toolkit-rust)
 
-**apcore-toolkit** is a shared scanner, schema extraction, and output toolkit for the [apcore](https://github.com/aipartnerup/apcore-python) ecosystem. It provides framework-agnostic logic to extract metadata from existing code and make it "AI-Perceivable".
+**apcore-toolkit** is a shared scanner, schema extraction, and output toolkit for the [apcore](https://github.com/aiperceivable/apcore-python) ecosystem. It provides framework-agnostic logic to extract metadata from existing code and make it "AI-Perceivable".
 
 Available in:
-- [🐍 Python](https://github.com/aipartnerup/apcore-toolkit-python)
-- [📘 TypeScript](https://github.com/aipartnerup/apcore-toolkit-typescript)
-- [🦀 Rust](https://github.com/aipartnerup/apcore-toolkit-rust)
+- [🐍 Python](https://github.com/aiperceivable/apcore-toolkit-python)
+- [📘 TypeScript](https://github.com/aiperceivable/apcore-toolkit-typescript)
+- [🦀 Rust](https://github.com/aiperceivable/apcore-toolkit-rust)
 
 ---
 
 ## Key Features
 
-- **🚀 Multi-Language Support**: Implementation available for [🐍 Python](https://github.com/aipartnerup/apcore-toolkit-python), [📘 TypeScript](https://github.com/aipartnerup/apcore-toolkit-typescript), and [🦀 Rust](https://github.com/aipartnerup/apcore-toolkit-rust).
+- **🚀 Multi-Language Support**: Implementation available for [🐍 Python](https://github.com/aiperceivable/apcore-toolkit-python), [📘 TypeScript](https://github.com/aiperceivable/apcore-toolkit-typescript), and [🦀 Rust](https://github.com/aiperceivable/apcore-toolkit-rust).
 - **🔍 Smart Scanning**: Abstract base classes for framework scanners with filtering and deduplication.
 - **📄 Output Generation**: Writers for YAML bindings, language-specific wrappers, and direct Registry registration.
 - **🛠️ Schema Utilities**: Tools for Pydantic/Zod model flattening and OpenAPI schema extraction.
-- **🤖 AI Enhancement**: Built-in `AIEnhancer` with local SLM support, pluggable `Enhancer` protocol, and [apcore-refinery](https://github.com/aipartnerup/apcore-refinery) for production use.
+- **🤖 AI Enhancement**: Built-in `AIEnhancer` with local SLM support, pluggable `Enhancer` protocol, and [apcore-refinery](https://github.com/aiperceivable/apcore-refinery) for production use.
 - **📝 Markdown Formatting**: Convert arbitrary data structures to structured Markdown.
 
 ---
@@ -52,7 +52,7 @@ Available in:
 
     ```toml
     [dependencies]
-    apcore-toolkit = { git = "https://github.com/aipartnerup/apcore-toolkit-rust" }
+    apcore-toolkit = { git = "https://github.com/aiperceivable/apcore-toolkit-rust" }
     ```
     Requires Rust 1.70+ and apcore 0.13.0+.
 
