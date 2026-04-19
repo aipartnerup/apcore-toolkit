@@ -263,6 +263,95 @@ For deeper behavioral analysis beyond HTTP methods, see [Phase 5](#phase-5-infer
 
 ---
 
+## Contract: BaseScanner.get_source_name
+
+### Inputs
+- None (self/this only)
+
+### Errors
+- None — subclasses should never raise from this method
+
+### Returns
+- On success: string — human-readable name for the scanner source (e.g., `"django-ninja"`, `"flask-smorest"`)
+
+### Properties
+- async: false
+- pure: true
+- abstract: true — every BaseScanner subclass MUST implement this method
+
+---
+
+## Contract: BaseScanner.extract_docstring
+
+### Inputs
+- `func`: callable (Python) / function reference (TypeScript), required — the function whose docstring to extract
+- `method`: string, optional (TypeScript only) — HTTP method hint for schema enrichment
+
+### Errors
+- None raised — returns empty defaults if the function has no docstring or introspection fails
+
+### Returns
+- On success: tuple/object with three fields:
+  - `description`: string — first line of the docstring (or `""`)
+  - `documentation`: string — full docstring body after the first line (or `""`)
+  - `parameters`: dict — parameter name → description mapping extracted from `:param name:` or Google/NumPy-style docstring sections
+
+### Properties
+- async: false
+- pure: true
+
+---
+
+## Contract: ScannedModule
+
+### Construction
+- Python: dataclass — `ScannedModule(module_id=..., target=..., ...)` — all fields with defaults can be omitted
+- TypeScript: interface + factory — `createScannedModule({ moduleId, target, ... })` — NEVER use `new ScannedModule()`
+- Rust: struct literal — `ScannedModule { module_id: ..., target: ..., ..Default::default() }`
+
+### Fields
+- `module_id` / `moduleId`: string, required — unique identifier for this module (e.g., route path or function name)
+- `description`: string, required — one-line human-readable description
+- `target`: string, required — dotted import path to the callable (e.g., `"myapp.views:create_user"`)
+- `input_schema` / `inputSchema`: dict / `Record<string, unknown>`, required — JSON Schema for input parameters
+- `output_schema` / `outputSchema`: dict / `Record<string, unknown>`, required — JSON Schema for return value
+- `tags`: list[str] / string[], required — categorization tags
+- `annotations`: `ModuleAnnotations | None`, optional, default=None/null — behavioral annotations (readonly, idempotent, etc.)
+- `version`: string, optional, default=`"1.0.0"` — module version string
+- `examples`: list[ModuleExample] / ModuleExample[], optional, default=`[]`
+- `metadata`: dict / `Record<string, unknown>`, optional, default=`{}`
+- `documentation`: string | None, optional, default=None/null — extended documentation
+- `warnings`: list[str] / string[], optional, default=`[]` — scan-time warnings appended by deduplication and other utilities
+- `display`: dict | None, optional, default=None/null — overlay for display-layer rendering (emitted conditionally by YAMLWriter)
+- `spec_version`: string, optional, default=`"1.0"` — binding spec version stamped by YAMLWriter
+
+### Properties
+- immutable by convention (Python/TypeScript); owned value (Rust)
+- camelCase field names in TypeScript; snake_case in Python and Rust
+
+---
+
+## Contract: SerializationUtilities
+
+Three helper functions convert apcore objects to plain dictionaries:
+
+### `annotations_to_dict(annotations)` / `annotationsToDict(annotations)`
+- **Inputs**: `ModuleAnnotations` instance, required
+- **Returns**: `dict[str, Any]` / `Record<string, unknown>` with snake_case keys; all 12 annotation fields included (falsy values included, not omitted)
+- **Properties**: pure: true, async: false
+
+### `module_to_dict(module)` / `moduleToDict(module)`
+- **Inputs**: `ScannedModule` instance, required
+- **Returns**: `dict[str, Any]` / `Record<string, unknown>` with snake_case keys suitable for YAML/JSON serialization; `None`/`null` fields omitted; annotations serialized via `annotations_to_dict`
+- **Properties**: pure: true, async: false
+
+### `modules_to_dicts(modules)` / `modulesToDicts(modules)`
+- **Inputs**: `list[ScannedModule]` / `ScannedModule[]`, required
+- **Returns**: `list[dict]` / `Record<string, unknown>[]` — batch version of `module_to_dict`
+- **Properties**: pure: true, async: false
+
+---
+
 ## Serialization Utilities
 
 Two helper functions convert apcore objects to plain dictionaries for JSON/YAML serialization:

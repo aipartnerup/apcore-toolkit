@@ -108,6 +108,47 @@ The `enrich_schema_descriptions()` utility helps bridge the gap when a JSON Sche
     const enriched = enrichSchemaDescriptions(rawSchema, paramDescriptions);
     ```
 
+## Contract: to_markdown
+
+### Inputs
+- `data`: dict or list, required — arbitrary nested data structure to convert
+- `title`: string, optional — if provided, prepended as an H1 or H2 header
+- `depth`: int, optional, default=1 — heading level to start at (1 = `#`, 2 = `##`, etc.)
+
+### Errors
+- None raised — non-serializable values are converted via `str()` / `String()` as a fallback
+
+### Returns
+- On success: string — Markdown-formatted representation of the input data
+
+### Properties
+- async: false
+- pure: true
+- thread_safe: true
+
+---
+
+## Contract: enrich_schema_descriptions
+
+### Inputs
+- `schema`: dict / `Record<string, unknown>`, required — a JSON Schema object with a `"properties"` key; mutated in place
+- `descriptions`: dict[str, str] / `Record<string, string>`, required — mapping of property name → description to inject
+
+### Errors
+- None raised — silently skips properties not found in `schema.properties`
+
+### Returns
+- Python/Rust: `None` — schema is mutated in place
+- TypeScript: `void` — schema is mutated in place
+
+### Properties
+- async: false
+- pure: false (mutates the schema dict in place)
+- overwrite_safe: true — existing `"description"` fields are NOT overwritten (only missing descriptions are filled in)
+- thread_safe: true (assuming no concurrent mutation of the same schema dict)
+
+---
+
 ## Use Case: AI Documentation
 
 By converting complex internal states to Markdown tables or sections, you provide an LLM with a highly structured and easy-to-parse context. This improves the agent's ability to reason about the system's current state and available actions.

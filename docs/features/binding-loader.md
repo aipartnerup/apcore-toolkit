@@ -148,6 +148,47 @@ In Rust the error is an enum (`thiserror`-derived) with 5 variants — `PathNotF
     }
     ```
 
+## Contract: BindingLoader.load_data
+
+### Inputs
+- `data`: dict or list[dict], required — pre-parsed YAML content. Accepts either:
+  - A dict with a `"bindings"` key containing a list of binding entries
+  - A list of binding entry dicts directly
+- `strict`: bool, optional, default=false — if true, raises `BindingLoadError` on missing required fields (`input_schema`, `output_schema`)
+
+### Errors
+- `BindingLoadError` (Python raises, TypeScript throws, Rust returns `Err`) — invalid structure, missing `bindings` key, or strict-mode violation
+
+### Returns
+- On success: `list[ScannedModule]` / `ScannedModule[]` / `Vec<ScannedModule>`
+
+### Properties
+- async: false
+- pure: true (no filesystem access — operates on already-parsed data)
+- thread_safe: true
+
+---
+
+## Contract: BindingLoadError
+
+### Fields (Python / TypeScript)
+- `file_path` / `filePath`: string | None — path to the `.binding.yaml` file that triggered the error (if applicable)
+- `module_id` / `moduleId`: string | None — module ID of the entry that failed (if applicable)
+- `missing_fields` / `missingFields`: list[str] / string[] — field names missing in strict mode (empty list for non-strict errors)
+- `reason`: string — human-readable description of the error
+
+### Cross-SDK Shape
+
+| SDK | Type | Shape |
+|-----|------|-------|
+| Python | `class BindingLoadError(Exception)` | Single class with all 4 fields as attributes |
+| TypeScript | `class BindingLoadError extends Error` | Same 4 fields as camelCase properties |
+| Rust | `enum BindingLoadError` (`thiserror`) | 5 variants: `PathNotFound`, `FileRead { source }`, `YamlParse { source }`, `MissingFields { module_id, missing_fields }`, `InvalidStructure { reason }` |
+
+Rust callers pattern-match on the variant to recover structured information. Python/TypeScript callers access fields directly.
+
+---
+
 ## Round-Trip Guarantee
 
 `YAMLWriter.write` followed by `BindingLoader.load` preserves every persisted field: `module_id`, `target`, `description`, `documentation`, `tags`, `version`, `annotations` (including the 12 `ModuleAnnotations` fields such as `streaming`, `cache_ttl`), `examples`, `metadata`, `input_schema`, `output_schema`, and `display`. This is covered by round-trip tests in all three SDKs.

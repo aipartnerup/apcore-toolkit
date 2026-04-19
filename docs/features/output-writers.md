@@ -68,6 +68,54 @@ Generates source files containing decorator-based wrapper functions. This is use
     writer.write(modules, "./generated_apcore", { dryRun: false });
     ```
 
+## Contract: PythonWriter.write
+
+### Inputs
+- `modules`: list of `ScannedModule`, required
+- `output_dir`: string or Path, required — directory where generated `.py` files will be written
+- `dry_run`: bool, optional, default=false — if true, no files are written
+- `verify`: bool, optional, default=false — if true, runs `SyntaxVerifier` (AST parse check) after each write
+- `verifiers`: list of verifier objects, optional — additional custom verifiers
+
+### Errors
+- `WriteError(path, cause)` — file system write failure
+- All SDKs wrap verifier exceptions into `WriteResult.verification_error` rather than re-raising
+
+### Returns
+- On success: list of `WriteResult` — one per module; `path` points to the generated `.py` file
+
+### Properties
+- async: false
+- pure: false (writes to filesystem unless dry_run=true)
+- thread_safe: true
+- idempotent: true (writing same modules twice produces same files)
+- availability: Python only — TypeScript writes TypeScript (TypeScriptWriter); Rust has no native code-gen writer
+
+---
+
+## Contract: TypeScriptWriter.write
+
+### Inputs
+- `modules`: list of `ScannedModule`, required
+- `outputDir`: string, required — directory where generated `.ts` files will be written
+- `options`: object, optional — `{ dryRun?: boolean, verify?: boolean, verifiers?: Verifier[] }`
+
+### Errors
+- `WriteError(path, cause)` — file system write failure
+- All SDKs wrap verifier exceptions into `WriteResult.verificationError` rather than re-raising
+
+### Returns
+- On success: `WriteResult[]` — one per module; `path` points to the generated `.ts` file
+
+### Properties
+- async: false
+- pure: false (writes to filesystem unless dryRun=true)
+- thread_safe: true
+- idempotent: true
+- availability: TypeScript only — Python writes Python (PythonWriter); Rust has no native code-gen writer
+
+---
+
 ## `RegistryWriter`
 
 Directly registers the scanned modules into an active `apcore.Registry` instance. This is ideal for "live" scanning where you want to expose existing endpoints without generating intermediate files.
@@ -130,6 +178,28 @@ writer = HTTPProxyRegistryWriter(
 writer.write(modules, registry)
 ```
 
+## Contract: HTTPProxyRegistryWriter.write
+
+### Inputs
+- `modules`: list of `ScannedModule`, required
+- `registry`: `apcore.Registry`, required — the live registry to register HTTP proxy modules into
+- `dry_run`: bool, optional, default=false
+- `verify`: bool, optional, default=false
+- `verifiers`: list of verifier objects, optional
+
+### Errors
+- `WriteError(path, cause)` — HTTP request failure or registry rejection
+
+### Returns
+- On success: list of `WriteResult` — `path` is `None` (no file written)
+
+### Properties
+- async: false
+- pure: false (mutates registry, makes HTTP requests unless dry_run=true)
+- availability: Python only (requires `httpx` — install with `apcore-toolkit[http-proxy]`)
+
+---
+
 ## `get_writer()` Factory
 
 The `get_writer(format)` factory function returns the appropriate writer instance for a given output format, avoiding the need to import each writer class individually.
@@ -164,6 +234,92 @@ The `get_writer(format)` factory function returns the appropriate writer instanc
     const writer = getWriter("typescript"); // TypeScriptWriter
     const writer = getWriter("registry");   // RegistryWriter
     ```
+
+## Contract: get_writer
+
+### Inputs
+- `format`: string, required — output format name. Supported values per SDK:
+  - Python: `"yaml"`, `"python"`, `"registry"`, `"http-proxy"` — raises `ValueError` for anything else
+  - TypeScript: `"yaml"`, `"typescript"`, `"registry"` — raises `InvalidFormatError` for anything else; `"http-proxy"` is not available in TypeScript
+  - Rust: returns `OutputFormat` enum variant (not a writer instance — idiomatic Rust divergence)
+- Additional keyword args (Python only): forwarded to the writer constructor (e.g., `base_url` for `"http-proxy"`)
+
+### Errors
+- `ValueError` (Python) / `InvalidFormatError` (TypeScript) — unknown format string
+- `ImportError` (Python, `"http-proxy"` only) — `httpx` not installed
+
+### Returns
+- On success: writer instance (`YAMLWriter`, `PythonWriter`, `TypeScriptWriter`, `RegistryWriter`, `HTTPProxyRegistryWriter`)
+- Rust exception: returns `OutputFormat` enum variant (caller matches and constructs the writer)
+
+### Properties
+- async: false
+- pure: true (constructs a new instance, no side effects)
+
+---
+
+## Contract: Verifier.verify
+
+### Inputs
+- `path`: string or Path, required — path to the written artifact (may be `None`/`null` for RegistryWriter output; verifiers should handle gracefully)
+- `module_id`: string, required — the module ID of the written artifact
+
+### Errors
+- None raised — verifier implementations MUST NOT raise; they must catch internal errors and return `VerifyResult(ok=False, error="...")`. Uncaught exceptions are caught by the verifier chain and wrapped into `WriteResult.verification_error`.
+
+### Returns
+- On success: `VerifyResult(ok=True)` — artifact is well-formed
+- On failure: `VerifyResult(ok=False, error="<human-readable message>")`
+
+### Properties
+- async: false
+- pure: false (reads filesystem or registry)
+- thread_safe: true (implementations should not share mutable state)
+
+---
+
+## Contract: WriteResult
+
+### Fields
+- `module_id` / `moduleId`: string — the module that was written
+- `path`: string | None / string | null — output file path; `None`/`null` for RegistryWriter (no file written)
+- `verified`: bool / boolean — whether verification passed; always `True`/`true` when `verify=false`
+- `verification_error` / `verificationError`: string | None / string | null — error message if verification failed
+
+### Properties
+- immutable: true (data-only result object, not mutated after construction)
+- availability: All three SDKs (field names are camelCase in TypeScript, snake_case in Python/Rust)
+
+---
+
+## Contract: WriteError
+
+### Fields
+- `path`: string — the file path that could not be written (or the registry key that could not be registered)
+- `cause`: Exception / Error / std::io::Error — the underlying OS or framework error
+
+### Properties
+- immutable: true
+- availability: Python (raised), TypeScript (thrown), Rust (returned as `Err(WriteError)`)
+
+---
+
+## Contract: BuiltInVerifiers
+
+All built-in verifiers implement the `Verifier` protocol. Each reads the artifact and checks well-formedness. None raises — failures are returned as `VerifyResult(ok=False, error=...)`.
+
+| Verifier | Used By | Checks |
+|----------|---------|--------|
+| `YAMLVerifier` | `YAMLWriter` | File exists, YAML parses without error, `module_id` and `target` keys present |
+| `SyntaxVerifier` | `PythonWriter` / `TypeScriptWriter` | File exists, source code parses without syntax errors (AST/TS compiler) |
+| `RegistryVerifier` | `RegistryWriter` | `registry.get(module_id)` returns a valid module |
+| `MagicBytesVerifier` | (custom use) | File header matches expected format signature |
+| `JSONVerifier` | (custom use) | File parses as valid JSON; optional schema validation |
+
+### Properties
+- async: false (all built-in verifiers)
+- pure: false (reads filesystem or registry)
+- thread_safe: true
 
 ---
 

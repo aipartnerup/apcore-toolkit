@@ -80,3 +80,99 @@ The toolkit provides three levels of `$ref` resolution:
 3. **`deep_resolve_refs(schema, doc)`** / **`deepResolveRefs(schema, doc)`** — Recursively walks the entire schema tree, resolving `$ref` inside `properties`, `allOf`/`anyOf`/`oneOf`, and `items`. Depth-limited to 16 levels to prevent infinite recursion on circular references.
 
 Both `extract_input_schema` and `extract_output_schema` call `deep_resolve_refs` internally, so callers get fully resolved schemas by default.
+
+---
+
+## Contract: extract_input_schema
+
+### Inputs
+- `op` / `operation`: dict, required — a single OpenAPI operation object (e.g., `spec["paths"]["/users"]["post"]`)
+- `doc` / `spec`: dict, required — the full OpenAPI spec document (used for `$ref` resolution)
+
+### Errors
+- None raised — returns `{}` if the operation has no parameters or request body
+
+### Returns
+- On success: dict — a flat JSON Schema `{ "type": "object", "properties": {...}, "required": [...] }` merging path params, query params, and request body properties
+
+### Properties
+- async: false
+- pure: true
+- depth_limit: 16 — `$ref` resolution stops at 16 levels to prevent infinite recursion on circular references
+
+---
+
+## Contract: extract_output_schema
+
+### Inputs
+- `op` / `operation`: dict, required — a single OpenAPI operation object
+- `doc` / `spec`: dict, required — the full OpenAPI spec document
+
+### Errors
+- None raised — returns `{}` if the operation has no `200`/`201` response schema
+
+### Returns
+- On success: dict — resolved JSON Schema for the `200` or `201` response body
+
+### Properties
+- async: false
+- pure: true
+- depth_limit: 16
+
+---
+
+## Contract: resolve_ref
+
+### Inputs
+- `ref_string` / `refString`: string, required — a JSON Pointer reference (e.g., `"#/components/schemas/User"`)
+- `doc` / `spec`: dict, required — the full OpenAPI spec document to resolve within
+
+### Errors
+- None raised — returns `None`/`null` if the reference path is not found in the document
+
+### Returns
+- On success: dict — the resolved schema at the referenced path
+- On missing: `None` / `null`
+
+### Properties
+- async: false
+- pure: true
+
+---
+
+## Contract: resolve_schema
+
+### Inputs
+- `schema`: dict, required — a schema object that may or may not have a top-level `$ref`
+- `doc` / `spec`: dict, required — the full OpenAPI spec document
+
+### Errors
+- None raised — returns the schema unchanged if it has no `$ref`
+
+### Returns
+- On success: dict — the schema with its top-level `$ref` resolved (single level only); if no `$ref`, returns the input schema unchanged
+
+### Properties
+- async: false
+- pure: true
+
+---
+
+## Contract: deep_resolve_refs
+
+### Inputs
+- `schema`: dict, required — a schema object (may contain nested `$ref`, `properties`, `allOf`/`anyOf`/`oneOf`, `items`)
+- `doc` / `spec`: dict, required — the full OpenAPI spec document
+- `depth`: int, optional, default=0 — internal recursion depth counter (callers should not set this)
+
+### Errors
+- None raised — returns the schema unchanged when `depth > 16` to prevent infinite recursion
+
+### Returns
+- On success: dict — fully resolved schema with all `$ref` pointers inlined (up to 16 levels deep)
+
+### Properties
+- async: false
+- pure: true
+- idempotent: true (calling twice on an already-resolved schema is a no-op)
+- depth_limit: 16
