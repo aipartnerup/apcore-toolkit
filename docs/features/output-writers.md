@@ -146,7 +146,7 @@ Directly registers the scanned modules into an active `apcore.Registry` instance
     writer.write(modules, registry, { dryRun: false });
     ```
 
-## `HTTPProxyRegistryWriter` (Python only)
+## `HTTPProxyRegistryWriter` (Python and Rust)
 
 Registers scanned modules as HTTP proxy classes that forward requests to a running web API. This enables CLI execution without invoking route handlers directly (which depend on framework DI systems).
 
@@ -158,45 +158,72 @@ Registers scanned modules as HTTP proxy classes that forward requests to a runni
 
 ### Installation
 
-Requires the `httpx` optional dependency:
+=== "Python"
 
-```bash
-pip install apcore-toolkit[http-proxy]
-```
+    Requires the `httpx` optional dependency:
+
+    ```bash
+    pip install apcore-toolkit[http-proxy]
+    ```
+
+=== "Rust"
+
+    Enable the `http-proxy` Cargo feature (adds a `reqwest` dependency):
+
+    ```toml
+    [dependencies]
+    apcore-toolkit = { git = "https://github.com/aiperceivable/apcore-toolkit-rust", features = ["http-proxy"] }
+    ```
+
+TypeScript does not ship an HTTP proxy writer; use the standard `RegistryWriter` with a client-side HTTP forwarder if that workflow is needed.
 
 ### Usage
 
-```python
-from apcore import Registry
-from apcore_toolkit import HTTPProxyRegistryWriter
+=== "Python"
 
-registry = Registry()
-writer = HTTPProxyRegistryWriter(
-    base_url="http://localhost:8000",
-    auth_header_factory=lambda: {"Authorization": "Bearer xxx"},
-)
-writer.write(modules, registry)
-```
+    ```python
+    from apcore import Registry
+    from apcore_toolkit import HTTPProxyRegistryWriter
+
+    registry = Registry()
+    writer = HTTPProxyRegistryWriter(
+        base_url="http://localhost:8000",
+        auth_header_factory=lambda: {"Authorization": "Bearer xxx"},
+    )
+    writer.write(modules, registry)
+    ```
+
+=== "Rust"
+
+    ```rust
+    use apcore::Registry;
+    use apcore_toolkit::HTTPProxyRegistryWriter;
+
+    let mut registry = Registry::new();
+    let writer = HTTPProxyRegistryWriter::new(
+        "http://localhost:8000".into(),
+        None,             // auth headers
+        30.0,             // timeout seconds
+    )?;
+    writer.write(&modules, &mut registry);
+    ```
 
 ## Contract: HTTPProxyRegistryWriter.write
 
 ### Inputs
 - `modules`: list of `ScannedModule`, required
-- `registry`: `apcore.Registry`, required — the live registry to register HTTP proxy modules into
-- `dry_run`: bool, optional, default=false
-- `verify`: bool, optional, default=false
-- `verifiers`: list of verifier objects, optional
+- `registry`: `apcore.Registry` (Python) / `&mut apcore::Registry` (Rust), required — the live registry to register HTTP proxy modules into
 
 ### Errors
-- `WriteError(path, cause)` — HTTP request failure or registry rejection
+- `WriteError(path, cause)` — registry rejection or target validation failure. HTTP requests themselves are issued later (at module call-time), not during `write`; `write` only registers proxy wrappers.
 
 ### Returns
-- On success: list of `WriteResult` — `path` is `None` (no file written)
+- On success: list of `WriteResult` — `path` is `None`/`null` (no file written)
 
 ### Properties
 - async: false
-- pure: false (mutates registry, makes HTTP requests unless dry_run=true)
-- availability: Python only (requires `httpx` — install with `apcore-toolkit[http-proxy]`)
+- pure: false (mutates registry)
+- availability: Python (always — requires `httpx`; install with `apcore-toolkit[http-proxy]`) and Rust (behind the `http-proxy` Cargo feature — adds a `reqwest` dependency). TypeScript does not ship an HTTP proxy writer.
 
 ---
 
@@ -212,7 +239,7 @@ The `get_writer(format)` factory function returns the appropriate writer instanc
 | `"python"` | `PythonWriter` instance | Python |
 | `"typescript"` | `TypeScriptWriter` instance | TypeScript |
 | `"registry"` | `RegistryWriter` instance | Both |
-| `"http-proxy"` | `HTTPProxyRegistryWriter` instance | Python |
+| `"http-proxy"` | `HTTPProxyRegistryWriter` instance | Python, Rust (feature `http-proxy`) |
 
 === "Python"
 
@@ -241,7 +268,7 @@ The `get_writer(format)` factory function returns the appropriate writer instanc
 - `format`: string, required — output format name. Supported values per SDK:
   - Python: `"yaml"`, `"python"`, `"registry"`, `"http-proxy"` — raises `ValueError` for anything else
   - TypeScript: `"yaml"`, `"typescript"`, `"registry"` — raises `InvalidFormatError` for anything else; `"http-proxy"` is not available in TypeScript
-  - Rust: returns `OutputFormat` enum variant (not a writer instance — idiomatic Rust divergence)
+  - Rust: returns `OutputFormat` enum variant (not a writer instance — idiomatic Rust divergence). Supported variants: `Yaml`, `Registry`, and (with the `http-proxy` Cargo feature) `HttpProxy`; accepts the aliases `"http_proxy"`, `"http-proxy"`, and `"httpproxy"`. Returns `None` for unknown formats rather than raising.
 - Additional keyword args (Python only): forwarded to the writer constructor (e.g., `base_url` for `"http-proxy"`)
 
 ### Errors
@@ -482,6 +509,75 @@ results = writer.write(
 !!! tip "Lesson from CLI-Anything"
     The [CLI-Anything](https://github.com/HKUDS/CLI-Anything) project validates output with magic bytes, pixel analysis, and RMS audio levels — never trusting exit code alone. The same principle applies: **always verify the artifact, not the process exit status.** The `MagicBytesVerifier` is directly inspired by this approach.
 
+## Contract: run_verifier_chain
+
+`run_verifier_chain` / `runVerifierChain` is the public helper that orchestrates a sequence of verifiers against a single written artifact. Writers call it internally after each `write` step; callers can also invoke it directly to run a verifier chain outside the writer workflow (e.g., for post-build CI checks against already-written `.binding.yaml` files).
+
+### Inputs
+- `verifiers`: list of `Verifier` / `Verifier[]` / `&[Box<dyn Verifier>]`, required — ordered chain of verifiers to run
+- `path`: string | Path | None (Python) / `string | null` (TypeScript) / `Option<&Path>` (Rust), required — passed to each `verifier.verify(path, module_id)`; `None`/`null` is valid for Registry-backed artifacts (no file)
+- `module_id` / `moduleId`: string, required — module ID passed to each verifier for error context
+
+### Errors
+- None raised. Verifier exceptions (both declared and unexpected) are caught by the chain and surfaced as `VerifyResult(ok=False, error="Verifier crashed: …")`.
+
+### Returns
+- On success: the first failing `VerifyResult` encountered in the chain, OR `VerifyResult(ok=True)` if every verifier passed.
+- **Short-circuit**: evaluation stops at the first failure; subsequent verifiers in the chain are **not** invoked.
+
+### Properties
+- async: false
+- pure: false (verifiers typically read filesystem or registry state)
+- thread_safe: true (no shared mutable state within the chain)
+- availability: all three SDKs — `run_verifier_chain` (Python, Rust), `runVerifierChain` (TypeScript)
+
+### Example
+
+=== "Python"
+
+    ```python
+    from apcore_toolkit.output import run_verifier_chain, YAMLVerifier
+
+    result = run_verifier_chain(
+        [YAMLVerifier(), StrictYAMLVerifier()],
+        path="./bindings/users.create.binding.yaml",
+        module_id="users.create",
+    )
+    if not result.ok:
+        print(f"Verification failed: {result.error}")
+    ```
+
+=== "TypeScript"
+
+    ```typescript
+    import { runVerifierChain, YAMLVerifier } from "apcore-toolkit";
+
+    const result = runVerifierChain(
+      [new YAMLVerifier(), new StrictYAMLVerifier()],
+      "./bindings/users.create.binding.yaml",
+      "users.create",
+    );
+    if (!result.ok) {
+      console.warn(`Verification failed: ${result.error}`);
+    }
+    ```
+
+=== "Rust"
+
+    ```rust
+    use apcore_toolkit::{run_verifier_chain, YAMLVerifier};
+
+    let verifiers: Vec<Box<dyn Verifier>> = vec![Box::new(YAMLVerifier)];
+    let result = run_verifier_chain(
+        &verifiers,
+        Some(Path::new("./bindings/users.create.binding.yaml")),
+        "users.create",
+    );
+    if !result.ok {
+        eprintln!("Verification failed: {:?}", result.error);
+    }
+    ```
+
 ## Error Handling
 
 Writers and verifiers follow a consistent error handling pattern:
@@ -548,7 +644,7 @@ Writers never silently swallow errors. If `verify=False`, verification is skippe
 - On success: list of `WriteResult` — one per module; `path` is `None`/`null` (no file written)
 
 ### Properties
-- async: false
+- async: `false` (Python, Rust) / `true` (TypeScript) — the TypeScript `RegistryWriter.write` returns `Promise<WriteResult[]>` because it `await`s `resolveTarget(target)` internally (dynamic module resolution). Python and Rust resolve targets synchronously. TypeScript callers must `await` the call: `await writer.write(modules, registry)`.
 - pure: false (mutates registry unless dry_run=true)
 - idempotent: false (registering the same module_id twice may overwrite or raise depending on registry configuration)
 

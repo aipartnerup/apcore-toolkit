@@ -1,6 +1,6 @@
 # apcore Toolkit
 
-The **apcore Toolkit** is a multi-language SDK for scanning, transforming, and registering AI-callable modules in the [apcore](https://github.com/aipartnerup/apcore) ecosystem.
+The **apcore Toolkit** is a multi-language SDK for scanning, transforming, and registering AI-callable modules in the [apcore](https://github.com/aiperceivable/apcore) ecosystem.
 
 It provides:
 - **Module scanning** — discover and extract callable modules from your codebase
@@ -19,7 +19,7 @@ It provides:
 
 ## Quick Start
 
-See the [Getting Started](features/scanning.md) guide.
+See the [Getting Started](getting-started.md) guide.
 
 ## Features
 

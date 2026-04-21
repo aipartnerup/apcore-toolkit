@@ -134,7 +134,7 @@ The toolkit exports a generic `Enhancer` protocol that any enhancement implement
       modules = await enhancer.enhance(modules);
     }
 
-    writer.write(modules, { outputDir: "./bindings" });
+    writer.write(modules, "./bindings");
     ```
 
 ### Limitations

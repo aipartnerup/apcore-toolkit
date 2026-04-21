@@ -7,12 +7,17 @@ This guide walks you through installing **apcore-toolkit** and using its core mo
 === "Python"
 
     - **Python**: 3.11+
-    - **apcore**: 0.14.0+
+    - **apcore**: 0.19.0+
 
 === "TypeScript"
 
     - **Node.js**: 18+
-    - **apcore**: 0.14.0+
+    - **apcore**: 0.19.0+
+
+=== "Rust"
+
+    - **Rust**: 1.70+ (edition 2021)
+    - **apcore**: 0.19.0+
 
 ---
 
@@ -28,6 +33,16 @@ This guide walks you through installing **apcore-toolkit** and using its core mo
 
     ```bash
     npm install apcore-toolkit
+    ```
+
+=== "Rust"
+
+    ```toml
+    [dependencies]
+    apcore-toolkit = { git = "https://github.com/aiperceivable/apcore-toolkit-rust" }
+
+    # Optional: HTTP proxy writer
+    apcore-toolkit = { git = "https://github.com/aiperceivable/apcore-toolkit-rust", features = ["http-proxy"] }
     ```
 
 ---

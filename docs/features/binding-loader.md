@@ -79,7 +79,18 @@ The top-level `spec_version` field is advisory:
 
 The error carries `file_path`/`module_id`/`missing_fields` plus a human-readable `reason` in Python; TypeScript exposes the same data as camelCase fields `filePath`/`moduleId`/`missingFields`/`reason` on `BindingLoadError extends Error`.
 
-In Rust the error is an enum (`thiserror`-derived) with 5 variants — `PathNotFound`, `FileRead`, `YamlParse`, `MissingFields`, `InvalidStructure` — carrying per-variant payloads; callers pattern-match to recover structured information.
+In Rust the error is an enum (`thiserror`-derived) with 7 variants — `PathNotFound`, `FileRead`, `YamlParse`, `MissingFields`, `InvalidStructure`, `FileTooLarge`, `TooManyFiles` — carrying per-variant payloads; callers pattern-match to recover structured information. The final two variants are safety caps introduced in 0.5.0 (see [Safety Caps](#safety-caps-rust-only) below).
+
+## Safety Caps (Rust only)
+
+The Rust loader enforces two defensive caps that surface as structured errors rather than unbounded resource use on untrusted input:
+
+| Cap | Default | Error variant | Payload |
+|-----|---------|---------------|---------|
+| Max file size | 16 MiB | `FileTooLarge` | `{ path, size, max }` |
+| Max files per directory scan | 10,000 | `TooManyFiles` | `{ path, max }` |
+
+Python and TypeScript loaders do not currently enforce these caps. Callers in those SDKs that load untrusted directories should pre-validate file counts and sizes. Cross-SDK alignment for these caps is tracked as an open item — see the 0.5.0 changelog and cross-SDK sync reports.
 
 ## Code Examples
 
@@ -183,7 +194,7 @@ In Rust the error is an enum (`thiserror`-derived) with 5 variants — `PathNotF
 |-----|------|-------|
 | Python | `class BindingLoadError(Exception)` | Single class with all 4 fields as attributes |
 | TypeScript | `class BindingLoadError extends Error` | Same 4 fields as camelCase properties |
-| Rust | `enum BindingLoadError` (`thiserror`) | 5 variants: `PathNotFound`, `FileRead { source }`, `YamlParse { source }`, `MissingFields { module_id, missing_fields }`, `InvalidStructure { reason }` |
+| Rust | `enum BindingLoadError` (`thiserror`) | 7 variants: `PathNotFound`, `FileRead { source }`, `YamlParse { source }`, `MissingFields { module_id, missing_fields }`, `InvalidStructure { reason }`, `FileTooLarge { path, size, max }`, `TooManyFiles { path, max }` |
 
 Rust callers pattern-match on the variant to recover structured information. Python/TypeScript callers access fields directly.
 

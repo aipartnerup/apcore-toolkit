@@ -2,15 +2,14 @@
 
 Modern web frameworks use structured models (Pydantic in Python, Zod/interfaces in TypeScript) for request and response validation. `apcore-toolkit` provides utilities to bridge the gap between structured models and the flat interface often required by AI tools.
 
-## Model Flattening
+## Model Flattening (Python only)
 
-=== "Python"
+The `flatten_pydantic_params()` function wraps a Python function, converting its Pydantic model parameters into flat, scalar keyword arguments.
 
-    The `flatten_pydantic_params()` function wraps a Python function, converting its Pydantic model parameters into flat, scalar keyword arguments.
+!!! info "TypeScript and Rust equivalents"
+    TypeScript functions natively accept object arguments — e.g. `function createUser(body: { username, email })` — so what `flatten_pydantic_params` does for Python (unwrapping a `UserCreate` Pydantic model into flat kwargs) is already idiomatic in TypeScript. Users who need to iterate a Zod schema's fields at runtime can do so directly: `Object.keys(schema.shape)`. No toolkit wrapper ships.
 
-=== "TypeScript"
-
-    The `flattenParams()` function wraps a TypeScript function, converting its structured input types (Zod schemas or interfaces) into flat, scalar keyword arguments.
+    Rust uses compile-time proc macros for schema-derived flat parameter lists; there is no runtime equivalent.
 
 ### Why Flatten?
 
@@ -18,65 +17,39 @@ AI agents and protocols like MCP (Model Context Protocol) interact best with fla
 
 ### Example
 
-=== "Python"
+```python
+from pydantic import BaseModel
+from apcore_toolkit import flatten_pydantic_params
 
-    ```python
-    from pydantic import BaseModel
-    from apcore_toolkit import flatten_pydantic_params
+class UserCreate(BaseModel):
+    username: str
+    email: str
 
-    class UserCreate(BaseModel):
-        username: str
-        email: str
+def create_user(body: UserCreate):
+    return f"Created {body.username}"
 
-    def create_user(body: UserCreate):
-        return f"Created {body.username}"
+# Wrap the function
+flat_create_user = flatten_pydantic_params(create_user)
 
-    # Wrap the function
-    flat_create_user = flatten_pydantic_params(create_user)
+# Now it can be called with flat kwargs
+result = flat_create_user(username="jdoe", email="joe@example.com")
+```
 
-    # Now it can be called with flat kwargs
-    result = flat_create_user(username="jdoe", email="joe@example.com")
-    ```
-
-=== "TypeScript"
-
-    ```typescript
-    import { z } from "zod";
-    import { flattenParams } from "apcore-toolkit";
-
-    const UserCreate = z.object({
-      username: z.string(),
-      email: z.string(),
-    });
-
-    function createUser(body: z.infer<typeof UserCreate>) {
-      return `Created ${body.username}`;
-    }
-
-    // Wrap the function
-    const flatCreateUser = flattenParams(createUser, UserCreate);
-
-    // Now it can be called with flat kwargs
-    const result = flatCreateUser({ username: "jdoe", email: "joe@example.com" });
-    ```
-
-## Contract: flatten_pydantic_params / flattenParams
+## Contract: flatten_pydantic_params
 
 ### Inputs
-- `func`: callable (Python) / function (TypeScript), required — the function whose Pydantic/Zod model parameters to flatten
-- `zodSchema`: ZodSchema (TypeScript only), required in TypeScript — the Zod schema describing the function's structured input type; Python introspects the schema from type hints automatically
+- `func`: callable, required — the function whose Pydantic model parameters to flatten
 
 ### Errors
-- None raised — if the function has no Pydantic/Zod model parameters, returns the function unchanged (or wraps with identity)
+- None raised — if the function has no Pydantic model parameters, returns the function unchanged. `NameError` from unresolved forward references and `TypeError` from invalid annotations are also treated as "no flattening possible" and return the original callable; all other exceptions propagate.
 
 ### Returns
-- On success: a wrapper function with the same return type but with Pydantic/Zod model params replaced by flat scalar kwargs
-- `list[ParameterDef]` metadata accessible on the wrapper describing flattened parameters
+- On success: a wrapper function with the same return type but with Pydantic model params replaced by flat scalar kwargs. The wrapper's `__signature__` and `__annotations__` reflect the flat surface.
 
 ### Properties
 - async: false
 - pure: true (produces a new wrapper function, does not mutate the original)
-- availability: Python (`flatten_pydantic_params`) and TypeScript (`flattenParams`) only; Rust uses compile-time proc macros instead
+- availability: Python only. TypeScript uses object-argument idioms natively; Rust uses compile-time proc macros.
 
 ---
 
@@ -91,9 +64,14 @@ When flattening, `apcore-toolkit` preserves:
 
 ### Inputs
 - `target`: string, required — dotted import path in the form `"module.path:attribute"` (Python/Rust) or `"module/path:attribute"` (TypeScript)
-- `allowedPrefixes`: string[] (TypeScript only), optional — if provided, the resolved module path must start with one of these prefixes; raises if not
+- `allowed_prefixes` / `allowedPrefixes`: list[str] / string[], optional, default=None/null — allowlist that mitigates arbitrary-code-execution via forged binding files (e.g. a malicious `target: "os:system"` injected into untrusted YAML).
+    - **Python**: list of **module-name** prefixes (e.g. `["myapp", "myorg.adapters"]`). When set, `module_path` must equal one of the prefixes or be a dotted descendant; otherwise `PermissionError` is raised.
+    - **TypeScript**: list of **directory** prefixes for file-path imports. When set, only file-path imports resolving under one of these directories are permitted; bare package names and `node:` builtins are rejected.
+    - **Rust**: not applicable — `resolve_target` is parse-only. Target-to-handler mapping runs through the application's `HandlerFactory`, which provides stronger isolation than any runtime allowlist.
 
 ### Errors
+- `ValueError` (Python) / `Error` (TypeScript) — invalid target format (missing `:` separator)
+- `PermissionError` (Python) / `Error` (TypeScript) — `allowed_prefixes` set and `module_path` not permitted
 - `ImportError` / `ModuleNotFoundError` (Python) — the module path cannot be imported
 - `Error` (TypeScript) — dynamic import failed or attribute not found
 - `Err(ResolveError)` (Rust) — parse failure; Rust does NOT perform runtime import

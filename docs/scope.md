@@ -4,7 +4,7 @@ This document defines what `apcore-toolkit` **does** and **does not do**, to gui
 
 ## What apcore-toolkit Is
 
-A **shared utility library** for framework-specific adapters (e.g., `django-apcore`, `flask-apcore`, `fastapi-apcore`). It extracts duplicated, framework-agnostic logic into a single package available in both Python and TypeScript.
+A **shared utility library** for framework-specific adapters (e.g., `django-apcore`, `flask-apcore`, `fastapi-apcore`). It extracts duplicated, framework-agnostic logic into a single package available in Python, TypeScript, and Rust.
 
 **Core responsibilities:**
 
@@ -85,4 +85,4 @@ Orchestration, token management, and multi-agent coordination belong to `apflow`
 1. **Stay framework-agnostic.** No imports from Django, Flask, FastAPI, Express, or NestJS.
 2. **Stay lightweight.** The toolkit is a library, not an application. No CLI entry points, no daemon processes.
 3. **Produce, don't consume.** Generate artifacts (YAML, Python, Registry entries) for apcore. Don't run the Executor or manage module lifecycle.
-4. **Dual-language parity.** Every feature documented here must be implementable in both Python and TypeScript. If a feature is language-specific, it belongs in the adapter, not the toolkit.
+4. **Cross-language parity.** Every feature documented here must be implementable in Python, TypeScript, and Rust. If a feature is language-specific (e.g., Pydantic flattening in Python, proc macros in Rust), it belongs in the adapter or is called out explicitly in the feature spec; it must not live in the toolkit as an unannounced asymmetry.

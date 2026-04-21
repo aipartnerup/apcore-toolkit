@@ -51,7 +51,7 @@ This produces the flat `input_schema` required by the `ScannedModule`.
 === "TypeScript"
 
     ```typescript
-    import { extractInputSchema, extractOutputSchema, ScannedModule } from "apcore-toolkit";
+    import { extractInputSchema, extractOutputSchema, createScannedModule } from "apcore-toolkit";
 
     // Load an OpenAPI spec
     const openapiSpec = { ... };
@@ -62,12 +62,14 @@ This produces the flat `input_schema` required by the `ScannedModule`.
     const inputSchema = extractInputSchema(operation, openapiSpec);
     const outputSchema = extractOutputSchema(operation, openapiSpec);
 
-    // Create a ScannedModule
-    const module = new ScannedModule({
+    // Create a ScannedModule (use createScannedModule — ScannedModule is an interface)
+    const module = createScannedModule({
       moduleId: "users.create",
+      description: "Create a user",
+      target: "myapp/views:createUser",
       inputSchema,
       outputSchema,
-      // ... other metadata
+      tags: [],
     });
     ```
 

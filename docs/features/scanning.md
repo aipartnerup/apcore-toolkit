@@ -198,7 +198,7 @@ For deeper behavioral analysis beyond HTTP methods, see [Phase 5](#phase-5-infer
 - `exclude`: string regex pattern, optional — if provided, modules whose `module_id` matches are removed; invalid regex raises error
 
 ### Errors
-- Invalid regex patterns raise `re.error` (Python), `SyntaxError` (TypeScript — subtype of Error), or return `Err(regex::Error)` (Rust). Note: Rust is the only SDK that returns the error via Result rather than throwing.
+- Invalid regex patterns: Python raises `ValueError` (wrapping the underlying `re.error` with `from exc`); TypeScript throws `SyntaxError` (subtype of `Error`, propagated from `new RegExp()`); Rust returns `Err(regex::Error)`. Note: Rust is the only SDK that surfaces the error via `Result` rather than throwing/raising. Python callers who need to distinguish regex errors from other `ValueError`s can inspect `exc.__cause__` for the original `re.error`.
 
 ### Returns
 - On success: filtered `list[ScannedModule]` / `ScannedModule[]` / `Vec<ScannedModule>`
@@ -323,7 +323,10 @@ For deeper behavioral analysis beyond HTTP methods, see [Phase 5](#phase-5-infer
 - `documentation`: string | None, optional, default=None/null — extended documentation
 - `warnings`: list[str] / string[], optional, default=`[]` — scan-time warnings appended by deduplication and other utilities
 - `display`: dict | None, optional, default=None/null — overlay for display-layer rendering (emitted conditionally by YAMLWriter)
-- `spec_version`: string, optional, default=`"1.0"` — binding spec version stamped by YAMLWriter
+- `suggested_alias` / `suggestedAlias`: string | None, optional, default=None/null — explicit alias suggestion produced by `simplify_ids` scanners; consumed by `DisplayResolver` as the alias fallback when no `display.alias` is set
+
+!!! note "`spec_version` is not a ScannedModule field"
+    `spec_version` appears at the top level of each emitted `.binding.yaml` document (stamped by `YAMLWriter`, default `"1.0"`) — it is **not** a field on the `ScannedModule` object itself. `BindingLoader` reads and validates it as advisory metadata for forward compatibility. See [Binding Loader — `spec_version` Handling](binding-loader.md#spec_version-handling).
 
 ### Properties
 - immutable by convention (Python/TypeScript); owned value (Rust)
