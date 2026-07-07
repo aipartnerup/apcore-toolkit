@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.0] - 2026-07-07
+
+Version-aligned feature release across Python, TypeScript, and Rust: a shared conformance verifier that guards registry writers against silently dropping behavioral annotations (which would disable approval/ACL gating), plus — in Python — a centralized writer so subclass adapters can no longer omit a field. Additive; no breaking changes. All three test suites pass (Python 719, TypeScript 617, Rust 453 lib + integration).
+
+### Added
+
+- **All SDKs — `assert_annotations_preserved` / `assertAnnotationsPreserved` conformance check.** A framework-agnostic helper (raises / throws / panics) that registers a scanned module and asserts its behavioral annotations (`requires_approval`, `destructive`) survive `get_definition`. Adapters import it into their own test suites so a writer that silently drops annotations — disabling approval/ACL gating — fails loudly. Exported from the package root in each SDK.
+
+### Changed
+
+- **Python — `RegistryWriter` field mapping is centralized.** `_to_function_module` no longer builds the `FunctionModule` inline; a new `_build_function_module` forwards **all** carried fields (including `annotations` and `display`). Subclass writers now override only the narrow hooks `_adapt_func` / `_build_input_schema` / `_build_output_schema` and can no longer omit a field. Behavior is unchanged for callers that do not override the hooks. (The TypeScript and Rust writers already preserved annotations — no change was required there.)
+
+### Cross-SDK note
+
+The motivating bug — dropped annotations silently disabling governance — existed only in two Python framework adapters (fixed in their own repos). The TypeScript (`nestjs-apcore`) and Rust (`axum-apcore`) adapters already preserved annotations; this release adds the shared guard across all three languages so no future adapter can regress unnoticed. A new exported symbol ⇒ MINOR; no breaking changes.
+
 ## [0.9.0] - 2026-06-23
 
 Version-aligned bug-fix release across Python, TypeScript, and Rust. Each SDK fixes a distinct correctness defect surfaced by real framework integration against the apcore 0.24.0 runtime. No conformance-fixture changes; all three test suites pass (Python 713, TypeScript 614, Rust all green).

@@ -823,3 +823,44 @@ Each `WriteResult` has `module_id`, `path`, `ok`, `verified`, `verification_erro
 | Live, dynamic module exposure | `RegistryWriter` |
 | Fast, zero-config integration | `RegistryWriter` |
 | CLI execution against a running API (Python, TypeScript, Rust) | `HTTPProxyRegistryWriter` |
+
+---
+
+## Conformance: annotation preservation
+
+Approval and ACL gating key on a module's `requires_approval` annotation, which is only
+reachable if annotations survive `scan → register → get_definition`. A writer that drops
+them during registration disables that gate **silently** — no error, no warning.
+
+To make that failure mode impossible to ship unnoticed, the toolkit provides a shared,
+framework-agnostic conformance check (added in 0.10.0). It registers a module through a
+writer and asserts its behavioral annotations (`requires_approval`, `destructive`) round-trip.
+Import it into each adapter's test suite:
+
+=== "🐍 Python"
+
+    ```python
+    from apcore_toolkit import assert_annotations_preserved
+    assert_annotations_preserved(MyRegistryWriter(), scanned_module, Registry())  # raises AssertionError
+    ```
+
+=== "📘 TypeScript"
+
+    ```typescript
+    import { assertAnnotationsPreserved } from 'apcore-toolkit';
+    await assertAnnotationsPreserved(new MyRegistryWriter(), scannedModule, new Registry()); // throws
+    ```
+
+=== "🦀 Rust"
+
+    ```rust
+    use apcore_toolkit::assert_annotations_preserved;
+    assert_annotations_preserved(&MyRegistryWriter::new(), &module, &Registry::new()); // panics
+    ```
+
+!!! note "Python writer hooks (0.10.0)"
+    In the Python SDK, `RegistryWriter` centralizes field mapping in `_build_function_module`
+    and exposes narrow override hooks — `_adapt_func`, `_build_input_schema`,
+    `_build_output_schema`. Subclass writers customize only these; they can no longer drop a
+    field (such as `annotations`) by hand-copying the constructor argument list. The TypeScript
+    and Rust writers already preserved annotations, so no equivalent refactor was needed there.
