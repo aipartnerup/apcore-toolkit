@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.2] - 2026-09-01
+
+Patch release, version-aligned across Python, TypeScript, and Rust. Bumps the required apcore floor to 0.28.0. apcore 0.27.0 and 0.28.0 are almost entirely ACL/Executor governance work (argument-scoped approval, `ACLRule.approval`/`approval_required`, `ExecutionPolicy.resolve()` call-site parameters, `Executor.governance_state()`/`governanceState()`, ACL effect/condition hardening) — none of it touches the Registry/Module/annotations surface this toolkit uses in any of the three languages (confirmed per-SDK via grep and cross-checked against the current apcore source). No code or API changes; all three test suites pass unmodified against apcore 0.28.0 (Python 719, TypeScript 617, Rust 453 lib + integration).
+
+Note: apcore 0.28.0 also makes dict-declared `input_schema`/`output_schema` validation actually enforce (previously a no-op in the Python SDK). This toolkit's Python `HTTPProxyRegistryWriter` registers such modules but is never itself routed through a live apcore `Executor`, so nothing here changes — but a framework adapter that executes a dict-schema module built by this writer through apcore 0.28.0 will now see real validation where it previously saw none.
+
+## [0.10.1] - 2026-07-14
+
+Patch release, version-aligned across Python, TypeScript, and Rust. Bumps the required apcore floor to 0.26.0 to align the ecosystem on the 0.26.0 governance layer (Execution Policy, governance events, no-handler fail-loud) — additive, no breaking changes for this toolkit. No code or API changes; all three test suites pass unmodified (Python 719, TypeScript 617, Rust 453 lib + integration).
+
 ## [0.10.0] - 2026-07-07
 
 Version-aligned feature release across Python, TypeScript, and Rust: a shared conformance verifier that guards registry writers against silently dropping behavioral annotations (which would disable approval/ACL gating), plus — in Python — a centralized writer so subclass adapters can no longer omit a field. Additive; no breaking changes. All three test suites pass (Python 719, TypeScript 617, Rust 453 lib + integration).

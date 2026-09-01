@@ -6,12 +6,12 @@
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://github.com/aiperceivable/apcore-toolkit-python)
-[![Python SDK](https://img.shields.io/badge/python_sdk-0.10.0-green)](https://github.com/aiperceivable/apcore-toolkit-python)
+[![Python SDK](https://img.shields.io/badge/python_sdk-0.10.2-green)](https://github.com/aiperceivable/apcore-toolkit-python)
 [![TypeScript Version](https://img.shields.io/badge/typescript-5.0%2B-blue)](https://github.com/aiperceivable/apcore-toolkit-typescript)
-[![TypeScript SDK](https://img.shields.io/badge/typescript_sdk-0.10.0-green)](https://github.com/aiperceivable/apcore-toolkit-typescript)
+[![TypeScript SDK](https://img.shields.io/badge/typescript_sdk-0.10.2-green)](https://github.com/aiperceivable/apcore-toolkit-typescript)
 [![Rust Version](https://img.shields.io/badge/rust-1.70%2B-blue)](https://github.com/aiperceivable/apcore-toolkit-rust)
-[![Rust SDK](https://img.shields.io/badge/rust_sdk-0.10.0-green)](https://github.com/aiperceivable/apcore-toolkit-rust)
-[![apcore](https://img.shields.io/badge/apcore-0.24.0%2B-orange)](https://github.com/aiperceivable/apcore-python)
+[![Rust SDK](https://img.shields.io/badge/rust_sdk-0.10.2-green)](https://github.com/aiperceivable/apcore-toolkit-rust)
+[![apcore](https://img.shields.io/badge/apcore-0.28.0%2B-orange)](https://github.com/aiperceivable/apcore-python)
 
 **apcore-toolkit** is a shared scanner, schema extraction, and output toolkit for the [apcore](https://github.com/aiperceivable/apcore-python) ecosystem. It provides framework-agnostic logic to extract metadata from existing code and make it "AI-Perceivable".
 
@@ -41,14 +41,14 @@ Available in:
     ```bash
     pip install apcore-toolkit
     ```
-    Requires Python 3.11+ and apcore 0.24.0+.
+    Requires Python 3.11+ and apcore 0.28.0+.
 
 === "📘 TypeScript"
 
     ```bash
     npm install apcore-toolkit
     ```
-    Requires Node.js 20+ and apcore-js 0.24.0+.
+    Requires Node.js 20+ and apcore-js 0.28.0+.
 
 === "🦀 Rust"
 
@@ -56,7 +56,7 @@ Available in:
     [dependencies]
     apcore-toolkit = { git = "https://github.com/aiperceivable/apcore-toolkit-rust" }
     ```
-    Requires Rust 1.70+ and apcore 0.24.0+.
+    Requires Rust 1.70+ and apcore 0.28.0+.
 
 ---
 
@@ -274,12 +274,12 @@ registry rather than try to mimic the pydantic pattern.
 ## Version Compatibility
 
 apcore-toolkit is part of the broader apcore ecosystem. Snapshot below is
-the **currently tested combination** (2026-06-12). Full cross-ecosystem
+the **currently tested combination** (2026-09-01). Full cross-ecosystem
 matrix lives in [`apcore` README](https://github.com/aiperceivable/apcore#version-compatibility).
 
 | Component | Tested with | Notes |
 |---|---|---|
-| `apcore` core SDK | 0.24.0 | apcore-toolkit-python / -rust pin `apcore` as required runtime dep |
+| `apcore` core SDK | 0.28.0 | apcore-toolkit-python / -rust pin `apcore` as required runtime dep |
 | Consumers (`apcore-cli`, `apcore-mcp`, `apcore-a2a`) | tested with `apcore-toolkit 0.10.0` | All declare apcore-toolkit as required runtime dep — no soft-degrade fallback |
 
 ### Known consumer-pin divergence (tracked as issue 6.8)
