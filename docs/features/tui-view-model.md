@@ -1,24 +1,25 @@
 ---
-description: "PROPOSED (not implemented) Tier-1 byte-equivalent TuiViewModel lifting module-list shape (columns, rows, filter/sort/color-by-tag) across consumers."
+description: "Tier-1 byte-equivalent TuiViewModel lifting module-list shape (columns, rows, filter/sort/color-by-tag) across consumers."
 ---
 
-# TUI View Model — V1 Proposal
+# TUI View Model — V1
 
-!!! warning "Status: PROPOSED — not implemented"
-    This document is a design proposal awaiting consumer demand. No code ships
-    against this spec in v0.7.x. Implementation begins when a fourth concrete
-    consumer surfaces (most likely trigger: `aisee-cli` adopting `--format table`,
-    or a browser dashboard in `tiptap-apcore` / `apcore-studio` needing
-    structured module listings).
+!!! success "Status: IMPLEMENTED (Phase 1 — toolkit)"
+    `TuiViewModel` + `modules_to_view_model` / `format_view_model` ship in
+    `apcore-toolkit-{python,typescript,rust}`, asserted byte-identical
+    across all three SDKs by the shared conformance corpus below. Phase 2
+    (`apcore-cli-*` adopting this as its `--format table` renderer,
+    replacing each SDK's local filter/sort/table code) is separate,
+    tracked work — no CLI behaviour has changed yet.
 
     | | |
     |---|---|
     | **Author** | apcore-toolkit maintainers |
     | **First drafted** | 2026-05-12 |
-    | **Target release** | 0.8.0 (earliest) |
+    | **Implemented** | 2026-09-04 |
     | **Tracking issue** | [aiperceivable/apcore-toolkit#14](https://github.com/aiperceivable/apcore-toolkit/issues/14) |
     | **Depends on** | `apcore-toolkit/docs/features/formatting.md` (byte-equivalent contract precedent) |
-    | **Affects** | `apcore-cli-{python,typescript,rust}` (Phase 2, separate PR) |
+    | **Affects** | `apcore-cli-{python,typescript,rust}` (Phase 2, separate PR — not yet started) |
 
 ---
 
@@ -386,43 +387,111 @@ let vm = modules_to_view_model(
 let canonical_json: String = format_view_model(&vm);
 ```
 
+---
+
+## Contract: modules_to_view_model
+
+### Inputs
+- `modules`: `list[ScannedModule]` / `ScannedModule[]` / `&[ScannedModule]`, required
+- `view` / `View`: `"list"` \| `"grouped"`, optional, default `"list"`
+- `columns`: array of column-key strings, optional, default **empty** — there is no built-in default column set; an empty `columns` array yields an empty `columns` array in the output (see conformance fixture `view_model_001_empty_list`). Callers wanting the conventional layout pass `["module_id", "description", "tags"]` explicitly.
+- `title`: string, optional
+- `filter` / `Filter`: optional
+- `sort` / `Sort`: optional — only `sort.key` of `module_id` / `alias` / `description` is executed by the toolkit; any other key is annotated in the output but the caller must pre-sort the incoming `modules` (see [Sort/Filter Execution Model](#sortfilter-execution-model))
+- `group_by` / `groupBy`: `"tag"` \| `"prefix"` \| `None`, optional — meaningful only when `view == "grouped"`; `None` groups everything under a single `"(all)"` group
+- `tone_palettes` / `tonePalettes`: array of `TonePalette`, optional, default empty — V1 wires the **first** supplied palette's `name` to the `"tags"` column's `tone_by`; there is no per-column palette-selection parameter in V1. Per-tag-value tone resolution (which tag chip in a multi-tag cell gets which colour) is a Tier-2 renderer concern, not computed by the builder.
+- `display`: boolean, optional, default `true` — honour `ScannedModule.display` overlay for `alias`/`description` (the toolkit's existing `display.alias > module_id` precedence — see Open Question 4 on aligning with the richer CLI chain)
+
+### Errors
+- None raised — degrades gracefully. An unrecognised column key (anything other than `module_id` / `alias` / `description` / `tags`) renders as an empty `"text"` cell rather than raising.
+
+### Returns
+- On success: `TuiViewModel`
+
+### Properties
+- async: false
+- pure: true
+- deterministic: true — identical input yields byte-identical `format_view_model(...)` output across all three SDKs
+- thread_safe: true — no mutation of input `modules`
+
+---
+
+## Contract: format_view_model
+
+### Inputs
+- `vm` / `view_model`: `TuiViewModel`, required
+
+### Errors
+- None
+
+### Returns
+- On success: string — compact canonical JSON per [Canonical JSON Encoding](#canonical-json-encoding-byte-equivalent): declaration-order keys, optional fields omitted (never `null`), no whitespace between tokens
+
+### Properties
+- async: false
+- pure: true
+- deterministic: true — the primary subject of the conformance corpus below
+
+---
+
 ## Conformance Corpus
 
-A shared corpus lives at `apcore-toolkit/conformance/fixtures/view_model/`,
-parallel to `format_csv.json` and `format_jsonl.json`. Each fixture is a
-pair `<name>.input.json` (a list of `ScannedModule` plus options) and
-`<name>.expected.json` (the byte-identical canonical encoding of the
-resulting `TuiViewModel`).
+A shared corpus lives at `apcore-toolkit/conformance/fixtures/view_model.json`,
+following the same structure as the shipped `format_csv.json`,
+`format_jsonl.json`, and `display_resolve.json`: **one JSON document** with
+top-level `$schema`, `title`, `description`, and `version`, plus a `test_cases`
+array whose entries each carry `id`, `description`, `input`, and `expected`.
+
+Here, `input` is a list of `ScannedModule` plus the builder options, and
+`expected` is the byte-identical canonical encoding of the resulting
+`TuiViewModel`.
+
+```jsonc
+{
+  "$schema": "https://apcore.dev/schemas/conformance-fixture.json",
+  "title": "TUI View Model — modules_to_view_model() / format_view_model()",
+  "description": "Byte-equivalent TuiViewModel encoding across Python / TypeScript / Rust SDKs.",
+  "version": "1.0.0",
+  "test_cases": [
+    {
+      "id": "view_model_001_empty_list",
+      "description": "Zero modules, no filter, no sort",
+      "input": { "modules": [], "options": { "view": "list" } },
+      "expected": "{\"schema_version\":1,\"kind\":\"list\",\"columns\":[],\"rows\":[]}"
+    }
+  ]
+}
+```
 
 Minimum V1 fixture set:
 
-| Fixture | Purpose |
+| Test case `id` | Purpose |
 |---|---|
-| `empty_list.json` | Zero modules, no filter, no sort |
-| `basic_list_three_columns.json` | 3 modules, default columns |
-| `filter_tag_intersect.json` | Two tags, AND semantics |
-| `filter_search_case_insensitive.json` | Substring match across `module_id` + `description` |
-| `filter_exposure_hidden.json` | Hidden-only filter |
-| `sort_asc_module_id.json` | Ascending sort by `module_id` |
-| `sort_desc_description.json` | Descending sort by `description` |
-| `grouped_by_tag.json` | `kind: "grouped"` with two groups |
-| `grouped_by_prefix.json` | `kind: "grouped"` by `module_id` prefix |
-| `tone_palette_deprecated_warning.json` | `tag_equals` rule emits `warning` tone |
-| `display_overlay_alias.json` | Honours `ScannedModule.display.alias` over `module_id` |
+| `view_model_001_empty_list` | Zero modules, no filter, no sort |
+| `view_model_002_basic_list_three_columns` | 3 modules, default columns |
+| `view_model_003_filter_tag_intersect` | Two tags, AND semantics |
+| `view_model_004_filter_search_case_insensitive` | Substring match across `module_id` + `description` |
+| `view_model_005_filter_exposure_hidden` | Hidden-only filter |
+| `view_model_006_sort_asc_module_id` | Ascending sort by `module_id` |
+| `view_model_007_sort_desc_description` | Descending sort by `description` |
+| `view_model_008_grouped_by_tag` | `kind: "grouped"` with two groups |
+| `view_model_009_grouped_by_prefix` | `kind: "grouped"` by `module_id` prefix |
+| `view_model_010_tone_palette_deprecated_warning` | `tag_equals` rule emits `warning` tone |
+| `view_model_011_display_overlay_alias` | Honours `ScannedModule.display.alias` over `module_id` |
 
 Each SDK's test suite runs the corpus; CI fails on any byte divergence.
 
 ## Migration Plan
 
-### Phase 1 — Toolkit (this proposal, when greenlit)
+### Phase 1 — Toolkit (done)
 
 In `apcore-toolkit-{python,typescript,rust}`:
 
-1. Add `TuiViewModel` + supporting types.
-2. Implement `modules_to_view_model` + `format_view_model`.
-3. Add conformance corpus + per-SDK conformance tests.
-4. Re-export from package root (and TypeScript `browser` subpath).
-5. Add `## Contract: modules_to_view_model` and `## Contract: format_view_model`
+1. [x] Add `TuiViewModel` + supporting types.
+2. [x] Implement `modules_to_view_model` + `format_view_model`.
+3. [x] Add conformance corpus + per-SDK conformance tests.
+4. [x] Re-export from package root (and TypeScript `browser` subpath).
+5. [x] Add `## Contract: modules_to_view_model` and `## Contract: format_view_model`
    blocks to this file.
 
 No CLI behaviour changes in this phase.

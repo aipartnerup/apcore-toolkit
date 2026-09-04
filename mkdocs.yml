@@ -39,7 +39,9 @@ nav:
       - Display Overlay: features/display-overlay.md
       - Convention Scanning: features/convention-scanning.md
       - Formatting: features/formatting.md
-      - TUI View Model (proposed): features/tui-view-model.md
+      - TUI View Model: features/tui-view-model.md
+      - OpenAPI Scanner: features/openapi-scanner.md
+      - Device Authorization Flow (proposed): features/device-auth.md
   - AI Enhancement: ai-enhancement.md
   - Changelog: changelog.md
 

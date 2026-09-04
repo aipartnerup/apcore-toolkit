@@ -1,0 +1,458 @@
+{
+  "$schema": "https://apcore.dev/schemas/conformance-fixture.json",
+  "title": "TUI View Model — modules_to_view_model() / format_view_model()",
+  "description": "Byte-equivalent TuiViewModel encoding across Python / TypeScript / Rust SDKs.",
+  "version": "1.0.0",
+  "test_cases": [
+    {
+      "id": "view_model_001_empty_list",
+      "description": "Zero modules, no filter, no sort",
+      "input": {
+        "modules": [],
+        "options": {
+          "view": "list"
+        }
+      },
+      "expected": "{\"schema_version\":1,\"kind\":\"list\",\"columns\":[],\"rows\":[]}"
+    },
+    {
+      "id": "view_model_002_basic_list_three_columns",
+      "description": "3 modules, default columns",
+      "input": {
+        "modules": [
+          {
+            "module_id": "users.get_user",
+            "description": "Get a user by ID",
+            "tags": [
+              "users",
+              "read-only"
+            ]
+          },
+          {
+            "module_id": "users.create_user",
+            "description": "Create a new user",
+            "tags": [
+              "users"
+            ]
+          },
+          {
+            "module_id": "orders.list_orders",
+            "description": "List all orders",
+            "tags": [
+              "orders",
+              "read-only"
+            ]
+          }
+        ],
+        "options": {
+          "view": "list",
+          "columns": [
+            "module_id",
+            "description",
+            "tags"
+          ]
+        }
+      },
+      "expected": "{\"schema_version\":1,\"kind\":\"list\",\"columns\":[{\"key\":\"module_id\",\"label\":\"ID\"},{\"key\":\"description\",\"label\":\"Description\"},{\"key\":\"tags\",\"label\":\"Tags\"}],\"rows\":[{\"cells\":[{\"kind\":\"text\",\"value\":\"users.get_user\"},{\"kind\":\"text\",\"value\":\"Get a user by ID\"},{\"kind\":\"tags\",\"values\":[\"users\",\"read-only\"]}],\"tags\":[\"users\",\"read-only\"]},{\"cells\":[{\"kind\":\"text\",\"value\":\"users.create_user\"},{\"kind\":\"text\",\"value\":\"Create a new user\"},{\"kind\":\"tags\",\"values\":[\"users\"]}],\"tags\":[\"users\"]},{\"cells\":[{\"kind\":\"text\",\"value\":\"orders.list_orders\"},{\"kind\":\"text\",\"value\":\"List all orders\"},{\"kind\":\"tags\",\"values\":[\"orders\",\"read-only\"]}],\"tags\":[\"orders\",\"read-only\"]}]}"
+    },
+    {
+      "id": "view_model_003_filter_tag_intersect",
+      "description": "Two tags, AND semantics",
+      "input": {
+        "modules": [
+          {
+            "module_id": "a.one",
+            "description": "A one",
+            "tags": [
+              "users",
+              "beta"
+            ]
+          },
+          {
+            "module_id": "a.two",
+            "description": "A two",
+            "tags": [
+              "users"
+            ]
+          },
+          {
+            "module_id": "a.three",
+            "description": "A three",
+            "tags": [
+              "beta"
+            ]
+          },
+          {
+            "module_id": "a.four",
+            "description": "A four",
+            "tags": [
+              "users",
+              "beta",
+              "extra"
+            ]
+          }
+        ],
+        "options": {
+          "view": "list",
+          "columns": [
+            "module_id",
+            "description",
+            "tags"
+          ],
+          "filter": {
+            "tags": [
+              "users",
+              "beta"
+            ],
+            "search": "",
+            "annotations": [],
+            "exposure": "all",
+            "deprecated": true
+          }
+        }
+      },
+      "expected": "{\"schema_version\":1,\"kind\":\"list\",\"columns\":[{\"key\":\"module_id\",\"label\":\"ID\"},{\"key\":\"description\",\"label\":\"Description\"},{\"key\":\"tags\",\"label\":\"Tags\"}],\"rows\":[{\"cells\":[{\"kind\":\"text\",\"value\":\"a.one\"},{\"kind\":\"text\",\"value\":\"A one\"},{\"kind\":\"tags\",\"values\":[\"users\",\"beta\"]}],\"tags\":[\"users\",\"beta\"]},{\"cells\":[{\"kind\":\"text\",\"value\":\"a.four\"},{\"kind\":\"text\",\"value\":\"A four\"},{\"kind\":\"tags\",\"values\":[\"users\",\"beta\",\"extra\"]}],\"tags\":[\"users\",\"beta\",\"extra\"]}],\"filter\":{\"tags\":[\"users\",\"beta\"],\"search\":\"\",\"annotations\":[],\"exposure\":\"all\",\"deprecated\":true}}"
+    },
+    {
+      "id": "view_model_004_filter_search_case_insensitive",
+      "description": "Substring match across module_id + description",
+      "input": {
+        "modules": [
+          {
+            "module_id": "users.get_user",
+            "description": "Fetch a User record",
+            "tags": [
+              "users"
+            ]
+          },
+          {
+            "module_id": "orders.get_order",
+            "description": "Fetch an order",
+            "tags": [
+              "orders"
+            ]
+          },
+          {
+            "module_id": "users.delete_user",
+            "description": "Remove a user permanently",
+            "tags": [
+              "users",
+              "destructive"
+            ]
+          }
+        ],
+        "options": {
+          "view": "list",
+          "columns": [
+            "module_id",
+            "description",
+            "tags"
+          ],
+          "filter": {
+            "tags": [],
+            "search": "USER",
+            "annotations": [],
+            "exposure": "all",
+            "deprecated": true
+          }
+        }
+      },
+      "expected": "{\"schema_version\":1,\"kind\":\"list\",\"columns\":[{\"key\":\"module_id\",\"label\":\"ID\"},{\"key\":\"description\",\"label\":\"Description\"},{\"key\":\"tags\",\"label\":\"Tags\"}],\"rows\":[{\"cells\":[{\"kind\":\"text\",\"value\":\"users.get_user\"},{\"kind\":\"text\",\"value\":\"Fetch a User record\"},{\"kind\":\"tags\",\"values\":[\"users\"]}],\"tags\":[\"users\"]},{\"cells\":[{\"kind\":\"text\",\"value\":\"users.delete_user\"},{\"kind\":\"text\",\"value\":\"Remove a user permanently\"},{\"kind\":\"tags\",\"values\":[\"users\",\"destructive\"]}],\"tags\":[\"users\",\"destructive\"]}],\"filter\":{\"tags\":[],\"search\":\"USER\",\"annotations\":[],\"exposure\":\"all\",\"deprecated\":true}}"
+    },
+    {
+      "id": "view_model_005_filter_exposure_hidden",
+      "description": "Hidden-only filter",
+      "input": {
+        "modules": [
+          {
+            "module_id": "a.visible",
+            "description": "Visible module",
+            "tags": [
+              "x"
+            ],
+            "annotations": {
+              "discoverable": true,
+              "extra": {}
+            }
+          },
+          {
+            "module_id": "a.hidden",
+            "description": "Hidden module",
+            "tags": [
+              "x"
+            ],
+            "annotations": {
+              "discoverable": false,
+              "extra": {}
+            }
+          },
+          {
+            "module_id": "a.hidden2",
+            "description": "Another hidden module",
+            "tags": [
+              "y"
+            ],
+            "annotations": {
+              "discoverable": false,
+              "extra": {}
+            }
+          }
+        ],
+        "options": {
+          "view": "list",
+          "columns": [
+            "module_id",
+            "description",
+            "tags"
+          ],
+          "filter": {
+            "tags": [],
+            "search": "",
+            "annotations": [],
+            "exposure": "hidden",
+            "deprecated": true
+          }
+        }
+      },
+      "expected": "{\"schema_version\":1,\"kind\":\"list\",\"columns\":[{\"key\":\"module_id\",\"label\":\"ID\"},{\"key\":\"description\",\"label\":\"Description\"},{\"key\":\"tags\",\"label\":\"Tags\"}],\"rows\":[{\"cells\":[{\"kind\":\"text\",\"value\":\"a.hidden\"},{\"kind\":\"text\",\"value\":\"Hidden module\"},{\"kind\":\"tags\",\"values\":[\"x\"]}],\"tags\":[\"x\"]},{\"cells\":[{\"kind\":\"text\",\"value\":\"a.hidden2\"},{\"kind\":\"text\",\"value\":\"Another hidden module\"},{\"kind\":\"tags\",\"values\":[\"y\"]}],\"tags\":[\"y\"]}],\"filter\":{\"tags\":[],\"search\":\"\",\"annotations\":[],\"exposure\":\"hidden\",\"deprecated\":true}}"
+    },
+    {
+      "id": "view_model_006_sort_asc_module_id",
+      "description": "Ascending sort by module_id",
+      "input": {
+        "modules": [
+          {
+            "module_id": "zebra.list",
+            "description": "Zebra listing",
+            "tags": []
+          },
+          {
+            "module_id": "alpha.get",
+            "description": "Alpha get",
+            "tags": []
+          },
+          {
+            "module_id": "mid.create",
+            "description": "Mid create",
+            "tags": []
+          }
+        ],
+        "options": {
+          "view": "list",
+          "columns": [
+            "module_id",
+            "description",
+            "tags"
+          ],
+          "sort": {
+            "key": "module_id",
+            "direction": "asc"
+          }
+        }
+      },
+      "expected": "{\"schema_version\":1,\"kind\":\"list\",\"columns\":[{\"key\":\"module_id\",\"label\":\"ID\"},{\"key\":\"description\",\"label\":\"Description\"},{\"key\":\"tags\",\"label\":\"Tags\"}],\"rows\":[{\"cells\":[{\"kind\":\"text\",\"value\":\"alpha.get\"},{\"kind\":\"text\",\"value\":\"Alpha get\"},{\"kind\":\"tags\",\"values\":[]}]},{\"cells\":[{\"kind\":\"text\",\"value\":\"mid.create\"},{\"kind\":\"text\",\"value\":\"Mid create\"},{\"kind\":\"tags\",\"values\":[]}]},{\"cells\":[{\"kind\":\"text\",\"value\":\"zebra.list\"},{\"kind\":\"text\",\"value\":\"Zebra listing\"},{\"kind\":\"tags\",\"values\":[]}]}],\"sort\":{\"key\":\"module_id\",\"direction\":\"asc\"}}"
+    },
+    {
+      "id": "view_model_007_sort_desc_description",
+      "description": "Descending sort by description",
+      "input": {
+        "modules": [
+          {
+            "module_id": "a.one",
+            "description": "Banana module",
+            "tags": []
+          },
+          {
+            "module_id": "a.two",
+            "description": "Apple module",
+            "tags": []
+          },
+          {
+            "module_id": "a.three",
+            "description": "Cherry module",
+            "tags": []
+          }
+        ],
+        "options": {
+          "view": "list",
+          "columns": [
+            "module_id",
+            "description",
+            "tags"
+          ],
+          "sort": {
+            "key": "description",
+            "direction": "desc"
+          }
+        }
+      },
+      "expected": "{\"schema_version\":1,\"kind\":\"list\",\"columns\":[{\"key\":\"module_id\",\"label\":\"ID\"},{\"key\":\"description\",\"label\":\"Description\"},{\"key\":\"tags\",\"label\":\"Tags\"}],\"rows\":[{\"cells\":[{\"kind\":\"text\",\"value\":\"a.three\"},{\"kind\":\"text\",\"value\":\"Cherry module\"},{\"kind\":\"tags\",\"values\":[]}]},{\"cells\":[{\"kind\":\"text\",\"value\":\"a.one\"},{\"kind\":\"text\",\"value\":\"Banana module\"},{\"kind\":\"tags\",\"values\":[]}]},{\"cells\":[{\"kind\":\"text\",\"value\":\"a.two\"},{\"kind\":\"text\",\"value\":\"Apple module\"},{\"kind\":\"tags\",\"values\":[]}]}],\"sort\":{\"key\":\"description\",\"direction\":\"desc\"}}"
+    },
+    {
+      "id": "view_model_008_grouped_by_tag",
+      "description": "kind: \"grouped\" with two groups",
+      "input": {
+        "modules": [
+          {
+            "module_id": "a.one",
+            "description": "A one",
+            "tags": [
+              "users"
+            ]
+          },
+          {
+            "module_id": "a.two",
+            "description": "A two",
+            "tags": [
+              "orders"
+            ]
+          },
+          {
+            "module_id": "a.three",
+            "description": "A three",
+            "tags": [
+              "users",
+              "orders"
+            ]
+          }
+        ],
+        "options": {
+          "view": "grouped",
+          "columns": [
+            "module_id",
+            "description",
+            "tags"
+          ],
+          "group_by": "tag"
+        }
+      },
+      "expected": "{\"schema_version\":1,\"kind\":\"grouped\",\"columns\":[{\"key\":\"module_id\",\"label\":\"ID\"},{\"key\":\"description\",\"label\":\"Description\"},{\"key\":\"tags\",\"label\":\"Tags\"}],\"rows\":[{\"cells\":[{\"kind\":\"text\",\"value\":\"a.one\"},{\"kind\":\"text\",\"value\":\"A one\"},{\"kind\":\"tags\",\"values\":[\"users\"]}],\"tags\":[\"users\"]},{\"cells\":[{\"kind\":\"text\",\"value\":\"a.two\"},{\"kind\":\"text\",\"value\":\"A two\"},{\"kind\":\"tags\",\"values\":[\"orders\"]}],\"tags\":[\"orders\"]},{\"cells\":[{\"kind\":\"text\",\"value\":\"a.three\"},{\"kind\":\"text\",\"value\":\"A three\"},{\"kind\":\"tags\",\"values\":[\"users\",\"orders\"]}],\"tags\":[\"users\",\"orders\"]}],\"groups\":[{\"label\":\"users\",\"row_indices\":[0,2]},{\"label\":\"orders\",\"row_indices\":[1,2]}]}"
+    },
+    {
+      "id": "view_model_009_grouped_by_prefix",
+      "description": "kind: \"grouped\" by module_id prefix",
+      "input": {
+        "modules": [
+          {
+            "module_id": "users.get_user",
+            "description": "Get user",
+            "tags": []
+          },
+          {
+            "module_id": "users.create_user",
+            "description": "Create user",
+            "tags": []
+          },
+          {
+            "module_id": "orders.list_orders",
+            "description": "List orders",
+            "tags": []
+          }
+        ],
+        "options": {
+          "view": "grouped",
+          "columns": [
+            "module_id",
+            "description",
+            "tags"
+          ],
+          "group_by": "prefix"
+        }
+      },
+      "expected": "{\"schema_version\":1,\"kind\":\"grouped\",\"columns\":[{\"key\":\"module_id\",\"label\":\"ID\"},{\"key\":\"description\",\"label\":\"Description\"},{\"key\":\"tags\",\"label\":\"Tags\"}],\"rows\":[{\"cells\":[{\"kind\":\"text\",\"value\":\"users.get_user\"},{\"kind\":\"text\",\"value\":\"Get user\"},{\"kind\":\"tags\",\"values\":[]}]},{\"cells\":[{\"kind\":\"text\",\"value\":\"users.create_user\"},{\"kind\":\"text\",\"value\":\"Create user\"},{\"kind\":\"tags\",\"values\":[]}]},{\"cells\":[{\"kind\":\"text\",\"value\":\"orders.list_orders\"},{\"kind\":\"text\",\"value\":\"List orders\"},{\"kind\":\"tags\",\"values\":[]}]}],\"groups\":[{\"label\":\"users\",\"row_indices\":[0,1]},{\"label\":\"orders\",\"row_indices\":[2]}]}"
+    },
+    {
+      "id": "view_model_010_tone_palette_deprecated_warning",
+      "description": "tag_equals rule emits warning tone",
+      "input": {
+        "modules": [
+          {
+            "module_id": "a.one",
+            "description": "A one",
+            "tags": [
+              "users",
+              "deprecated"
+            ]
+          },
+          {
+            "module_id": "a.two",
+            "description": "A two",
+            "tags": [
+              "users",
+              "read-only"
+            ]
+          }
+        ],
+        "options": {
+          "view": "list",
+          "columns": [
+            "module_id",
+            "description",
+            "tags"
+          ],
+          "tone_palettes": [
+            {
+              "name": "tag_palette",
+              "rules": [
+                {
+                  "kind": "tag_equals",
+                  "value": "deprecated",
+                  "tone": "warning"
+                },
+                {
+                  "kind": "tag_equals",
+                  "value": "read-only",
+                  "tone": "info"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": "{\"schema_version\":1,\"kind\":\"list\",\"columns\":[{\"key\":\"module_id\",\"label\":\"ID\"},{\"key\":\"description\",\"label\":\"Description\"},{\"key\":\"tags\",\"label\":\"Tags\",\"tone_by\":\"tag_palette\"}],\"rows\":[{\"cells\":[{\"kind\":\"text\",\"value\":\"a.one\"},{\"kind\":\"text\",\"value\":\"A one\"},{\"kind\":\"tags\",\"values\":[\"users\",\"deprecated\"]}],\"tags\":[\"users\",\"deprecated\"]},{\"cells\":[{\"kind\":\"text\",\"value\":\"a.two\"},{\"kind\":\"text\",\"value\":\"A two\"},{\"kind\":\"tags\",\"values\":[\"users\",\"read-only\"]}],\"tags\":[\"users\",\"read-only\"]}],\"tone_palettes\":[{\"name\":\"tag_palette\",\"rules\":[{\"match\":{\"kind\":\"tag_equals\",\"value\":\"deprecated\"},\"tone\":\"warning\"},{\"match\":{\"kind\":\"tag_equals\",\"value\":\"read-only\"},\"tone\":\"info\"}]}]}"
+    },
+    {
+      "id": "view_model_011_display_overlay_alias",
+      "description": "Honours ScannedModule.display.alias over module_id",
+      "input": {
+        "modules": [
+          {
+            "module_id": "users.get_user",
+            "description": "Get a user by ID",
+            "tags": [
+              "users"
+            ],
+            "display": {
+              "alias": "get-user",
+              "description": null,
+              "documentation": null,
+              "guidance": null,
+              "tags": null,
+              "cli": {},
+              "mcp": {},
+              "a2a": {}
+            }
+          },
+          {
+            "module_id": "orders.list_orders",
+            "description": "List all orders",
+            "tags": [
+              "orders"
+            ],
+            "display": null
+          }
+        ],
+        "options": {
+          "view": "list",
+          "columns": [
+            "module_id",
+            "alias",
+            "description",
+            "tags"
+          ]
+        }
+      },
+      "expected": "{\"schema_version\":1,\"kind\":\"list\",\"columns\":[{\"key\":\"module_id\",\"label\":\"ID\"},{\"key\":\"alias\",\"label\":\"Alias\"},{\"key\":\"description\",\"label\":\"Description\"},{\"key\":\"tags\",\"label\":\"Tags\"}],\"rows\":[{\"cells\":[{\"kind\":\"text\",\"value\":\"users.get_user\"},{\"kind\":\"text\",\"value\":\"get-user\"},{\"kind\":\"text\",\"value\":\"Get a user by ID\"},{\"kind\":\"tags\",\"values\":[\"users\"]}],\"tags\":[\"users\"]},{\"cells\":[{\"kind\":\"text\",\"value\":\"orders.list_orders\"},{\"kind\":\"text\",\"value\":\"orders.list_orders\"},{\"kind\":\"text\",\"value\":\"List all orders\"},{\"kind\":\"tags\",\"values\":[\"orders\"]}],\"tags\":[\"orders\"]}]}"
+    }
+  ]
+}

@@ -237,6 +237,51 @@ Registers scanned modules as HTTP proxy classes that forward requests to a runni
 !!! info "TypeScript-only constructor option: `fetchImpl`"
     The TypeScript constructor accepts an optional `fetchImpl?: typeof fetch` to inject a custom fetch implementation (useful for tests, edge runtimes, or proxy-aware HTTP clients). When omitted, the writer uses `globalThis.fetch` (available in Node.js 20+, browsers, Deno, and workers). If neither `options.fetchImpl` nor `globalThis.fetch` is available at construction time, the constructor throws. Python (`httpx`) and Rust (`reqwest`) inject their own HTTP clients and do not surface an equivalent option.
 
+### `metadata` Contract
+
+The writer reads the route to call from **`ScannedModule.metadata`**, never
+from `target` (`target` is a human-readable descriptor, not a callable
+reference, for a module representing a remote endpoint — see
+[`scanning.md`](scanning.md#contract-scannedmodule)). Any scanner producing
+modules for this writer — the [OpenAPI Scanner](openapi-scanner.md) included
+— MUST emit exactly these two flat, snake_case keys:
+
+| `metadata` key | Value | Example |
+|---|---|---|
+| `http_method` | **Uppercase** HTTP method | `"GET"` |
+| `url_path` | Path template, `{param}` braces retained, leading slash | `"/users/{user_id}"` |
+
+!!! danger "Uppercase is mandatory, not cosmetic"
+    Getting either key absent or wrongly cased is not a soft failure: the
+    writer silently falls back to `"GET"` and `"/"` when the keys are
+    missing, and every scanned module quietly proxies to the API root. The
+    Rust writer additionally matches the method against exact uppercase
+    literals and rejects a lowercase value outright (`Unsupported HTTP
+    method: post`); the Python writer compares case-sensitively when
+    deciding whether a request carries a body, so a lowercase `"post"`
+    would silently send its arguments as a **query string** instead of a
+    JSON body. Only the TypeScript writer upper-cases defensively.
+
+**Body vs. query is method-driven, not schema-driven.** The writer
+extracts path-parameter names from `url_path` itself (it does not read a
+separate parameter list), removes those from the remaining inputs, and
+sends the rest as a JSON body for `POST` / `PUT` / `PATCH` or as a query
+string for every other method (`GET`, `DELETE`, `HEAD`, `OPTIONS`). A
+scanner cannot override this by emitting additional metadata — see
+[OpenAPI Scanner § Execution Contract](openapi-scanner.md#execution-contract-metadata-keys)
+for the one real limitation this creates (a query parameter declared on a
+`POST` operation is still sent in the body).
+
+!!! note "Cross-SDK reader asymmetry (documented, not yet reconciled)"
+    Rust reads `metadata` only. Python and TypeScript also honour top-level
+    `http_method` / `url_path` attributes on framework-specific
+    `ScannedModule` subclasses, and TypeScript additionally accepts
+    camelCase `metadata.httpMethod` / `metadata.urlPath`. No shipped scanner
+    relies on the wider surface — every scanner (including the OpenAPI
+    Scanner) writes the snake_case `metadata` keys, the intersection all
+    three readers honour — but the asymmetry itself is worth knowing before
+    assuming "documented for one SDK" means "true for all three".
+
 ## Contract: HTTPProxyRegistryWriter.write
 
 ### Inputs

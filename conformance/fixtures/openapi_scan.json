@@ -1,0 +1,1924 @@
+{
+  "$schema": "https://apcore.dev/schemas/conformance-fixture.json",
+  "title": "OpenAPI Scanner — OpenAPIScanner.scan() / derive_module_id()",
+  "description": "Byte-equivalent OpenAPIScanner behaviour across Python / TypeScript / Rust SDKs. `expected.modules` entries are compared structurally (parsed-JSON deep equality), not as raw strings.",
+  "version": "1.0.0",
+  "test_cases": [
+    {
+      "id": "openapi_scan_001_empty_paths",
+      "description": "paths: {} → empty list, no error",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {}
+        }
+      },
+      "expected": {
+        "modules": []
+      }
+    },
+    {
+      "id": "openapi_scan_002_single_get",
+      "description": "Minimal GET /users → one module, users.get",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/users": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "users.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /users",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/users",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_003_operation_id_preserved",
+      "description": "operationId: getUserById used verbatim, case preserved",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/users/{id}": {
+              "get": {
+                "operationId": "getUserById",
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "getUserById",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /users/{id}",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/users/{id}",
+              "openapi": {
+                "spec_version": "3.0.3",
+                "operation_id": "getUserById"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_004_path_param_segment",
+      "description": "GET /users/{user_id} → users.user_id.get",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/users/{user_id}": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "users.user_id.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /users/{user_id}",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/users/{user_id}",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_005_collection_vs_item",
+      "description": "GET /users and GET /users/{id} coexist without collision",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/users": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            },
+            "/users/{id}": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "users.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /users",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/users",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "users.id.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /users/{id}",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/users/{id}",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_006_all_methods",
+      "description": "All 8 recognised methods on one path",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              },
+              "put": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              },
+              "post": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              },
+              "delete": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              },
+              "options": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              },
+              "head": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              },
+              "patch": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              },
+              "trace": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "widgets.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /widgets",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "widgets.put",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "PUT /widgets",
+            "annotations": {
+              "idempotent": true
+            },
+            "metadata": {
+              "http_method": "PUT",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "widgets.post",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "POST /widgets",
+            "annotations": {},
+            "metadata": {
+              "http_method": "POST",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "widgets.delete",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "DELETE /widgets",
+            "annotations": {
+              "destructive": true
+            },
+            "metadata": {
+              "http_method": "DELETE",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "widgets.options",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "OPTIONS /widgets",
+            "annotations": {
+              "readonly": true
+            },
+            "metadata": {
+              "http_method": "OPTIONS",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "widgets.head",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "HEAD /widgets",
+            "annotations": {
+              "readonly": true
+            },
+            "metadata": {
+              "http_method": "HEAD",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "widgets.patch",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "PATCH /widgets",
+            "annotations": {},
+            "metadata": {
+              "http_method": "PATCH",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "widgets.trace",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "TRACE /widgets",
+            "annotations": {},
+            "metadata": {
+              "http_method": "TRACE",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_007_non_operation_keys_skipped",
+      "description": "summary / parameters / servers in a path item are not scanned as methods",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets": {
+              "summary": "Widgets collection",
+              "parameters": [
+                {
+                  "name": "trace_id",
+                  "in": "header",
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "servers": [
+                {
+                  "url": "https://override.example.com"
+                }
+              ],
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "widgets.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /widgets",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_008_annotations_from_method",
+      "description": "GET→readonly+cacheable, DELETE→destructive, PUT→idempotent; also asserts metadata.http_method is uppercase",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              },
+              "put": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              },
+              "delete": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "widgets.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /widgets",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "widgets.put",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "PUT /widgets",
+            "annotations": {
+              "idempotent": true
+            },
+            "metadata": {
+              "http_method": "PUT",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "widgets.delete",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "DELETE /widgets",
+            "annotations": {
+              "destructive": true
+            },
+            "metadata": {
+              "http_method": "DELETE",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_009_deprecated_flag",
+      "description": "deprecated: true → annotations marked deprecated (annotations.extra.deprecated)",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets": {
+              "get": {
+                "deprecated": true,
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "widgets.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /widgets",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true,
+              "extra": {
+                "deprecated": true
+              }
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_010_execution_metadata",
+      "description": "metadata.http_method and metadata.url_path present, correctly named, and consumable by HTTPProxyRegistryWriter",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets/{id}": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "widgets.id.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /widgets/{id}",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/widgets/{id}",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_011_description_precedence",
+      "description": "summary wins over description for the description field",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets": {
+              "get": {
+                "summary": "List widgets",
+                "description": "Returns a paginated list of all widgets in the system.\nSupports filtering.",
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "widgets.get",
+            "description": "List widgets",
+            "documentation": "Returns a paginated list of all widgets in the system.\nSupports filtering.",
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /widgets",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3",
+                "summary": "List widgets"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_012_ref_resolution",
+      "description": "Nested $ref in request body fully inlined",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets": {
+              "post": {
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/Widget"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          },
+          "components": {
+            "schemas": {
+              "Widget": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "widgets.post",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "POST /widgets",
+            "annotations": {},
+            "metadata": {
+              "http_method": "POST",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_013_unresolvable_ref_warns",
+      "description": "Bad $ref → {} schema + warning, module still emitted",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets": {
+              "post": {
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/Missing"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "widgets.post",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "POST /widgets",
+            "annotations": {},
+            "metadata": {
+              "http_method": "POST",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": [
+              "unresolvable $ref: #/components/schemas/Missing"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_014_external_ref_refused",
+      "description": "external $ref: \"https://…\" not fetched → {} + warning",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets": {
+              "post": {
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "https://example.com/schemas/widget.json"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "widgets.post",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "POST /widgets",
+            "annotations": {},
+            "metadata": {
+              "http_method": "POST",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": [
+              "external $ref not fetched: https://example.com/schemas/widget.json"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_015_duplicate_operation_id",
+      "description": "Two ops share an operationId → _2 suffix + warning",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets": {
+              "get": {
+                "operationId": "listThings",
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            },
+            "/things": {
+              "get": {
+                "operationId": "listThings",
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "listThings",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /widgets",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3",
+                "operation_id": "listThings"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "listThings_2",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /things",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/things",
+              "openapi": {
+                "spec_version": "3.0.3",
+                "operation_id": "listThings"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": [
+              "Module ID renamed from 'listThings' to 'listThings_2' to avoid collision"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_016_sanitize_illegal_chars",
+      "description": "POST /a b/c → a_b.c.post",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/a b/c": {
+              "post": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "a_b.c.post",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "POST /a b/c",
+            "annotations": {},
+            "metadata": {
+              "http_method": "POST",
+              "url_path": "/a b/c",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_017_root_path",
+      "description": "GET / → root.get",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "root.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_018_no_success_response",
+      "description": "Only a 404 defined → empty output_schema + warning",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets": {
+              "get": {
+                "responses": {
+                  "404": {
+                    "description": "not found"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "widgets.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /widgets",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": [
+              "no 2xx response defined; output_schema is empty"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_019_document_order_preserved",
+      "description": "Module order follows document key order, not alphabetical",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/zebra": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            },
+            "/apple": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            },
+            "/mango": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "zebra.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /zebra",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/zebra",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "apple.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /apple",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/apple",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "mango.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /mango",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/mango",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_020_swagger_2_rejected",
+      "description": "swagger: \"2.0\" raises in all three SDKs",
+      "input": {
+        "spec": {
+          "swagger": "2.0",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {}
+        }
+      },
+      "expected": {
+        "raises": "invalid_spec"
+      }
+    },
+    {
+      "id": "openapi_scan_021_hook_skip_operation",
+      "description": "transform_operation returning None omits that operation",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              },
+              "post": {
+                "x-skip": true,
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "options": {},
+        "hooks": {
+          "transform_operation": "skip_if_x_skip_true"
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "widgets.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /widgets",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_022_hook_custom_module_id",
+      "description": "derive_module_id override is used; returning None falls back to the default",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets": {
+              "get": {
+                "operationId": "custom",
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              },
+              "post": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "options": {},
+        "hooks": {
+          "derive_module_id": "custom_name_for_operation_id_custom_else_default"
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "custom.name",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /widgets",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3",
+                "operation_id": "custom"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "widgets.post",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "POST /widgets",
+            "annotations": {},
+            "metadata": {
+              "http_method": "POST",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_023_hook_before_dedup",
+      "description": "A custom naming scheme producing a collision is still resolved by deduplicate_ids",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            },
+            "/things": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "options": {},
+        "hooks": {
+          "derive_module_id": "always_returns_dup_op"
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "dup.op",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /widgets",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          },
+          {
+            "module_id": "dup.op_2",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /things",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/things",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": [
+              "Module ID renamed from 'dup.op' to 'dup.op_2' to avoid collision"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "openapi_scan_024_no_hooks_matches_baseline",
+      "description": "With no hooks installed, output is identical to the corresponding hook-free case",
+      "input": {
+        "spec": {
+          "openapi": "3.0.3",
+          "info": {
+            "title": "t",
+            "version": "1.0.0"
+          },
+          "paths": {
+            "/widgets": {
+              "get": {
+                "responses": {
+                  "200": {
+                    "description": "ok"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "expected": {
+        "modules": [
+          {
+            "module_id": "widgets.get",
+            "description": "",
+            "documentation": null,
+            "tags": [],
+            "version": "1.0.0",
+            "target": "GET /widgets",
+            "annotations": {
+              "readonly": true,
+              "cacheable": true
+            },
+            "metadata": {
+              "http_method": "GET",
+              "url_path": "/widgets",
+              "openapi": {
+                "spec_version": "3.0.3"
+              }
+            },
+            "input_schema": {
+              "type": "object",
+              "properties": {},
+              "required": []
+            },
+            "output_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "warnings": []
+          }
+        ]
+      }
+    }
+  ]
+}

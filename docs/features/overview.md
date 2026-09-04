@@ -19,6 +19,17 @@ description: "Index of apcore-toolkit features (scanning, OpenAPI, writers, bind
 | **[AI Enhancement](../ai-enhancement.md)** | Pluggable `Enhancer` protocol with built-in `AIEnhancer` for local SLMs; [apcore-refinery](https://github.com/aiperceivable/apcore-refinery) recommended for production. |
 | **[Display Overlay](display-overlay.md)** | Sparse `binding.yaml` overlay that resolves surface-facing alias, description, guidance, and tags into `metadata["display"]` for CLI, MCP, and A2A surfaces. |
 | **[Convention Scanning](convention-scanning.md)** | Scan a `commands/` directory of plain Python files for public functions, inferring schemas from type annotations -- zero decorators, zero imports. |
+| **[TUI View Model](tui-view-model.md)** | Tier-1 byte-equivalent `TuiViewModel` lifting module-list shape (columns, rows, filter/sort/color-by-tag semantics) into the toolkit. |
+| **[OpenAPI Scanner](openapi-scanner.md)** | Turn a whole OpenAPI 3.x document into a `ScannedModule` list — one module per operation — with a byte-identical `module_id` derivation. |
+
+## Proposed Capabilities
+
+These are design proposals with no shipping implementation. They are versioned
+in this repository so the contract can be reviewed before any SDK writes code.
+
+| Proposal | Tracking issue | Summary |
+|---|---|---|
+| **[Device Authorization Flow](device-auth.md)** | [#17](https://github.com/aiperceivable/apcore-toolkit/issues/17) | RFC 8628 polling state machine, token lifecycle, and portable storage. Protocol only; terminal UI stays in `apcore-cli`. |
 
 ## Design Philosophy
 

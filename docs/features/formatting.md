@@ -267,7 +267,7 @@ This three-rule alignment (default-comparison + alphabetical + lowercase bool) i
 | `markdown` | string | `# {alias or module_id}\n\n{description}\n\n## Parameters\n{format_schema(input_schema, style="prose")}\n\n## Returns\n{format_schema(output_schema, style="prose")}\n\n## Behavior\n{annotations as fact table}\n\n## Examples\n{examples}` |
 | `skill` | string | YAML frontmatter `---\nname: {alias or module_id}\ndescription: {description}\n---\n` + the `markdown` body. ONLY `name` + `description` are emitted in frontmatter; vendor-specific keys (`allowed-tools`, `paths`, `when_to_use`, etc.) are NOT emitted. |
 | `table-row` | string | `\`{module_id}\` │ \`{alias}\` │ {description} │ {tags joined with ", "}` |
-| `json` | dict / `Record` / `Value` | Equivalent to `module_to_dict(module)` — see [scanning.md](scanning.md#contract-serializationutilities) |
+| `json` | dict / `Record` / `Value` | Equivalent to `module_to_dict(module)` — see [scanning.md](scanning.md#contract-serializationutilitiesmodule_to_dict) |
 
 ### Errors
 - `ValueError` (Python) / `Error` (TypeScript) — when `style` is not one of the four canonical values

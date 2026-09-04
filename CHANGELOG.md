@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.0] - 2026-09-04
+
+Feature release across Python, TypeScript, and Rust: ships two previously-proposed Tier-1 toolkit features — **OpenAPI Scanner** and **TUI View Model** — plus two blocking `HTTPProxyRegistryWriter` defect fixes in `apcore-toolkit-rust`. `docs/features/device-auth.md` remains a design proposal and does not ship in this release.
+
+### Added
+
+- **OpenAPI Scanner** (`OpenAPIScanner`, `derive_module_id`, `load_spec`) — turns a whole OpenAPI 3.0/3.1 document into a `ScannedModule` list, one module per operation, with a byte-identical `module_id` derivation across all three SDKs. Built on the already-shipped `extract_input_schema` / `extract_output_schema` / `deep_resolve_refs` primitives. See [`docs/features/openapi-scanner.md`](docs/features/openapi-scanner.md). Verified against the published Swagger Petstore OpenAPI 3.0 reference spec — byte-identical `ScannedModule` output across all three SDKs, in addition to the shared 24-case conformance corpus (`conformance/fixtures/openapi_scan.json`).
+- **TUI View Model** (`TuiViewModel`, `modules_to_view_model`, `format_view_model`) — lifts the module-list view shape (columns, rows, filter/sort/color-by-tag semantics) into a Tier-1 byte-equivalent structure, ending three independent per-SDK table-rendering implementations. See [`docs/features/tui-view-model.md`](docs/features/tui-view-model.md). Asserted byte-identical via the shared 11-case conformance corpus (`conformance/fixtures/view_model.json`), and cross-checked end-to-end against the Petstore-scanned modules above (identical grouped/filtered/sorted output across all three SDKs).
+- **`output-writers.md` § `metadata` Contract** — documents the previously-unspecified `http_method` / `url_path` metadata keys `HTTPProxyRegistryWriter` reads, including the uppercase requirement and the method-driven body-vs-query rule.
+
+### Fixed
+
+- **`apcore-toolkit-rust` — `HTTPProxyRegistryWriter` rejected `HEAD`/`OPTIONS`/`TRACE` requests before any network call.** Only `GET`/`POST`/`PUT`/`PATCH`/`DELETE` were handled; OpenAPI-scanned modules using the other three recognised HTTP methods failed at execution time on Rust only. Fixed.
+- **`apcore-toolkit-rust` — the post-substitution "unfilled path parameter" check used a narrower regex than extraction/substitution**, so a hyphenated path parameter (e.g. `{item-id}`) left unfilled by the caller was not flagged. Path-parameter *extraction and substitution* were already correct — this is a narrower, corrected diagnosis than the defect as originally filed; see the correction in `docs/features/openapi-scanner.md`. Fixed by reusing the same extraction function for both checks.
+
+### Cross-SDK audit findings (fixed in this release)
+
+A post-implementation line-by-line audit comparing all three SDKs' new code — beyond what the shared conformance corpus exercises — found and fixed:
+
+- **TypeScript — `TuiViewModel`'s `Filter.annotations` silently excluded every module when filtering by `requires_approval` or `open_world`.** The filter takes the spec's snake_case flag names, but the installed `apcore-js` `ModuleAnnotations` type uses camelCase fields, so the raw property lookup always missed — a documented, valid usage path, not a malformed-input edge case. Fixed with an explicit name mapping.
+- **Python — `OpenAPIScanner` mis-parsed a non-array `tags` value.** `list(tags or [])` silently character-split a string value (`"tags": "foo"` → `["f","o","o"]`) instead of degrading to an empty list, as TypeScript and Rust already did.
+- Several lower-severity type-coercion divergences (a truthy-vs-strict `deprecated` boolean check, non-string `operationId`/`info.version`/`summary` leniency, Unicode- vs ASCII-only digit matching for 2xx response-status detection) were also found and aligned toward the stricter, more-correct behaviour across all three SDKs. None affect a valid OpenAPI document; all are gated behind malformed/non-conforming input.
+
+### Docs
+
+- `docs/features/tui-view-model.md` and `docs/features/openapi-scanner.md` status flipped from "PROPOSED — not implemented" to "IMPLEMENTED"; both moved from **Proposed Capabilities** to the main feature table in `docs/features/overview.md`; `mkdocs.yml` nav labels dropped the "(proposed)" suffix. `docs/features/device-auth.md` is unaffected and remains a proposal.
+
 ## [0.10.2] - 2026-09-01
 
 Patch release, version-aligned across Python, TypeScript, and Rust. Bumps the required apcore floor to 0.28.0. apcore 0.27.0 and 0.28.0 are almost entirely ACL/Executor governance work (argument-scoped approval, `ACLRule.approval`/`approval_required`, `ExecutionPolicy.resolve()` call-site parameters, `Executor.governance_state()`/`governanceState()`, ACL effect/condition hardening) — none of it touches the Registry/Module/annotations surface this toolkit uses in any of the three languages (confirmed per-SDK via grep and cross-checked against the current apcore source). No code or API changes; all three test suites pass unmodified against apcore 0.28.0 (Python 719, TypeScript 617, Rust 453 lib + integration).
