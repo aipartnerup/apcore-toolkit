@@ -71,7 +71,10 @@ When flattening, `apcore-toolkit` preserves:
 - `allowed_prefixes` / `allowedPrefixes`: list[str] / string[], optional, default=None/null — allowlist that mitigates arbitrary-code-execution via forged binding files (e.g. a malicious `target: "os:system"` injected into untrusted YAML).
     - **Python**: list of **module-name** prefixes (e.g. `["myapp", "myorg.adapters"]`). When set, `module_path` must equal one of the prefixes or be a dotted descendant; otherwise `PermissionError` is raised.
     - **TypeScript**: list of **directory** prefixes for file-path imports. When set, only file-path imports resolving under one of these directories are permitted; bare package names and `node:` builtins are rejected.
-    - **Rust**: not applicable — `resolve_target` is parse-only. Target-to-handler mapping runs through the application's `HandlerFactory`, which provides stronger isolation than any runtime allowlist.
+    - **Rust**: not applicable — `resolve_target` is parse-only. Target-to-handler mapping runs through the application's `HandlerFactory`, which provides stronger isolation than any runtime allowlist. `RegistryWriter::with_allowed_prefixes` (see [`output-writers.md`](output-writers.md)) applies the same module-path-prefix semantics as Python at the registration layer instead.
+
+!!! warning "`allowed_prefixes` values are not portable across languages"
+    Python's and TypeScript's `allowed_prefixes` are deliberately different KINDS of allow-list, matching each language's own `target` string convention (dotted module path vs. slash-separated file path) — not an oversight to be reconciled. Do not assume a single literal config value (e.g. `["myapp"]`) means the same thing when shared verbatim across a mixed-language deployment: it constrains a module-name tree in Python, but a filesystem directory tree in TypeScript. Configure this allow-list per SDK, using that SDK's own `target` format as the reference.
 
 ### Errors
 - `ValueError` (Python) / `Error` (TypeScript) — invalid target format (missing `:` separator)
