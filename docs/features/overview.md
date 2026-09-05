@@ -1,31 +1,65 @@
 ---
-description: "Index of apcore-toolkit features (scanning, OpenAPI, writers, binding loader, formatting, enhancement, display overlay) with the per-SDK parity table."
+description: "Pipeline-oriented index of apcore-toolkit capabilities: discovery, schema and metadata refinement, artifacts, runtime registration, presentation, and cross-SDK conformance."
 ---
 
 # Features Overview
 
-`apcore-toolkit` is a collection of framework-agnostic utilities designed to help you extract, refine, and export metadata from your existing codebase, making it "AI-Perceivable". Available for **Python**, **TypeScript**, and **Rust**.
+`apcore-toolkit` is a cross-language metadata pipeline for turning framework routes, convention-based functions, or OpenAPI documents into portable `ScannedModule` values, then refining, presenting, exporting, or registering them. Available for **Python**, **TypeScript**, and **Rust**.
+
+## The Toolkit Pipeline
+
+```text
+source / OpenAPI → ScannedModule → schema & metadata refinement
+                  → presentation or artifact → Registry / HTTP execution
+```
+
+Every feature below either produces, transforms, persists, presents, or
+executes a `ScannedModule`. Framework-specific route discovery remains owned
+by each adapter.
 
 ## Core Capabilities
 
+### Discovery
+
 | Feature | Description |
 |---------|-------------|
-| **[Smart Scanning](scanning.md)** | Abstract base classes and utilities for framework-specific scanners, with a 5-phase ability extraction methodology. |
-| **[OpenAPI Integration](openapi.md)** | Extract JSON Schemas directly from OpenAPI operation objects. |
-| **[Schema Utilities](pydantic.md)** | Flatten complex models (Pydantic / Zod) for easier AI interaction. |
-| **[Output Writers](output-writers.md)** | Export metadata to YAML bindings, source code wrappers, or direct Registry registration — with optional output verification. |
-| **[Binding Loader](binding-loader.md)** | Parse `.binding.yaml` files back into `ScannedModule` objects — the read-path counterpart to `YAMLWriter`. Supports strict and loose modes for verification, merging, and round-trip workflows. |
-| **[Formatting](formatting.md)** | Convert data structures into Markdown, enrich JSON Schema descriptions from docstrings, and render `ScannedModule` for specific consumer surfaces (`format_module` / `format_schema` / `format_modules` — markdown / skill / table-row / json styles). |
-| **[AI Enhancement](../ai-enhancement.md)** | Pluggable `Enhancer` protocol with built-in `AIEnhancer` for local SLMs; [apcore-refinery](https://github.com/aiperceivable/apcore-refinery) recommended for production. |
-| **[Display Overlay](display-overlay.md)** | Sparse `binding.yaml` overlay that resolves surface-facing alias, description, guidance, and tags into `metadata["display"]` for CLI, MCP, and A2A surfaces. |
-| **[Convention Scanning](convention-scanning.md)** | Scan a `commands/` directory of plain Python files for public functions, inferring schemas from type annotations -- zero decorators, zero imports. |
-| **[TUI View Model](tui-view-model.md)** | Tier-1 byte-equivalent `TuiViewModel` lifting module-list shape (columns, rows, filter/sort/color-by-tag semantics) into the toolkit. |
-| **[OpenAPI Scanner](openapi-scanner.md)** | Turn a whole OpenAPI 3.x document into a `ScannedModule` list — one module per operation — with a byte-identical `module_id` derivation. |
+| **[Smart Scanning](scanning.md)** | Shared `ScannedModule` model and `BaseScanner` utilities for framework adapters, including filtering, deduplication, documentation extraction, and behavioral inference. |
+| **[Convention Scanning](convention-scanning.md)** | Python-only convention scanner for discovering public functions in a `commands/` directory without decorators or apcore imports. |
+| **[OpenAPI Scanner](openapi-scanner.md)** | Turn a complete OpenAPI 3.0/3.1 document into one `ScannedModule` per operation with a byte-identical module-ID algorithm across SDKs. |
+
+### Schema & Metadata
+
+| Feature | Description |
+|---------|-------------|
+| **[OpenAPI Schema Extraction](openapi.md)** | Operation-level parameter/response extraction and bounded nested `$ref` resolution. This is the reusable primitive consumed by the OpenAPI Scanner. |
+| **[Schema Utilities](pydantic.md)** | Model flattening, target resolution, and schema refinement for language-native integrations. |
+| **[Display Overlay](display-overlay.md)** | Resolve surface-facing alias, description, guidance, and tags into `metadata["display"]`. |
+| **[AI Enhancement](../ai-enhancement.md)** | Pluggable metadata enrichment with a built-in local-SLM enhancer and `apcore-refinery` integration. |
+
+### Artifacts & Runtime
+
+| Feature | Description |
+|---------|-------------|
+| **[Output Writers](output-writers.md)** | Generate YAML bindings or language-native stubs, register modules directly, or expose remote operations through HTTP proxies; includes output verification contracts. |
+| **[Binding Loader](binding-loader.md)** | Read `.binding.yaml` back into `ScannedModule` values, supporting strict/loose modes and writer round trips. |
+
+### Presentation & Interchange
+
+| Feature | Description |
+|---------|-------------|
+| **[Surface Formatting](formatting.md)** | Render modules and schemas as Markdown, Skill, JSON, table rows, CSV, or JSONL. |
+| **[TUI View Model](tui-view-model.md)** | Build a byte-equivalent module-list view model with shared columns, rows, filtering, sorting, grouping, and tag-tone semantics. It is a view model, not a terminal renderer. |
+
+The `format_module(..., style="table-row")` contract and the `TuiViewModel`
+wire format serve different consumers and should not be conflated.
 
 ## Proposed Capabilities
 
 These are design proposals with no shipping implementation. They are versioned
 in this repository so the contract can be reviewed before any SDK writes code.
+
+For navigation purposes, proposals are intentionally separated from shipped
+features. The current proposal is [Device Authorization Flow](device-auth.md).
 
 | Proposal | Tracking issue | Summary |
 |---|---|---|

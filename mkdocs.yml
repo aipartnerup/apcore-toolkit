@@ -31,19 +31,26 @@ nav:
   - Scope & Boundaries: scope.md
   - Features:
       - Overview: features/overview.md
-      - Smart Scanning: features/scanning.md
-      - OpenAPI Integration: features/openapi.md
-      - Schema Utilities: features/pydantic.md
-      - Output Writers: features/output-writers.md
-      - Binding Loader: features/binding-loader.md
-      - Display Overlay: features/display-overlay.md
-      - Convention Scanning: features/convention-scanning.md
-      - Formatting: features/formatting.md
-      - TUI View Model: features/tui-view-model.md
-      - OpenAPI Scanner: features/openapi-scanner.md
-      - Device Authorization Flow (proposed): features/device-auth.md
-  - AI Enhancement: ai-enhancement.md
-  - Changelog: changelog.md
+      - Core Model & Scanning:
+          - ScannedModule & BaseScanner: features/scanning.md
+          - Convention Scanner: features/convention-scanning.md
+          - OpenAPI Scanner: features/openapi-scanner.md
+      - Schema & Metadata:
+          - OpenAPI Schema Extraction: features/openapi.md
+          - Schema Utilities: features/pydantic.md
+          - Display Overlay: features/display-overlay.md
+          - AI Enhancement: ai-enhancement.md
+      - Artifacts & Runtime:
+          - Output Writers: features/output-writers.md
+          - Binding Loader: features/binding-loader.md
+      - Presentation & Interchange:
+          - Surface Formatting: features/formatting.md
+          - TUI View Model: features/tui-view-model.md
+  - Proposals:
+      - Device Authorization Flow: features/device-auth.md
+  - Reference:
+      - Cross-SDK Conformance: reference/conformance.md
+  - Changelog: https://github.com/aiperceivable/apcore-toolkit/blob/main/CHANGELOG.md
 
 markdown_extensions:
   - tables

@@ -32,14 +32,29 @@ See the [Getting Started](getting-started.md) guide.
 
 ## Features
 
-- [Scanning](features/scanning.md)
-- [OpenAPI Integration](features/openapi.md)
+### Discovery
+
+- [ScannedModule & BaseScanner](features/scanning.md)
+- [Convention Scanner](features/convention-scanning.md)
 - [OpenAPI Scanner](features/openapi-scanner.md)
+
+### Schema & Metadata
+
+- [OpenAPI Schema Extraction](features/openapi.md)
 - [Schema Utilities](features/pydantic.md)
+- [Display Overlay](features/display-overlay.md)
+- [AI Enhancement](ai-enhancement.md)
+
+### Artifacts & Runtime
+
 - [Output Writers](features/output-writers.md)
 - [Binding Loader](features/binding-loader.md)
-- [Formatting](features/formatting.md)
-- [AI Enhancement](ai-enhancement.md)
-- [Display Overlay](features/display-overlay.md)
-- [Convention Scanning](features/convention-scanning.md)
+
+### Presentation & Interchange
+
+- [Surface Formatting](features/formatting.md)
 - [TUI View Model](features/tui-view-model.md)
+
+### Reference
+
+- [Cross-SDK Conformance](reference/conformance.md)

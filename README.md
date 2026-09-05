@@ -13,7 +13,7 @@
 [![Rust SDK](https://img.shields.io/badge/rust_sdk-0.11.0-green)](https://github.com/aiperceivable/apcore-toolkit-rust)
 [![apcore](https://img.shields.io/badge/apcore-0.29.0%2B-orange)](https://github.com/aiperceivable/apcore-python)
 
-**apcore-toolkit** is a shared scanner, schema extraction, and output toolkit for the [apcore](https://github.com/aiperceivable/apcore-python) ecosystem. It provides framework-agnostic logic to extract metadata from existing code and make it "AI-Perceivable".
+**apcore-toolkit** is a cross-language metadata pipeline for the [apcore](https://github.com/aiperceivable/apcore-python) ecosystem. It turns framework routes, convention-based functions, or complete OpenAPI 3.0/3.1 documents into portable `ScannedModule` values, then refines, presents, exports, or registers them for downstream surfaces.
 
 Available in:
 - [🐍 Python](https://github.com/aiperceivable/apcore-toolkit-python)
@@ -26,10 +26,12 @@ Available in:
 
 - **🚀 Multi-Language Support**: Implementation available for [🐍 Python](https://github.com/aiperceivable/apcore-toolkit-python), [📘 TypeScript](https://github.com/aiperceivable/apcore-toolkit-typescript), and [🦀 Rust](https://github.com/aiperceivable/apcore-toolkit-rust).
 - **🔍 Smart Scanning**: Abstract base classes for framework scanners with filtering and deduplication.
-- **📄 Output Generation**: Writers for YAML bindings, language-specific wrappers, and direct Registry registration.
-- **🛠️ Schema Utilities**: Tools for Pydantic/Zod model flattening and OpenAPI schema extraction.
+- **📄 OpenAPI Scanning**: Scan a whole OpenAPI 3.x document into one module per operation with byte-identical module-ID derivation across Python, TypeScript, and Rust.
+- **📦 Output & Runtime Registration**: Writers for YAML bindings, language-specific wrappers, direct Registry registration, and HTTP-proxied remote APIs.
+- **🛠️ Schema & Metadata Utilities**: Extract and resolve schemas, apply display overlays, and optionally enrich metadata with AI.
 - **🤖 AI Enhancement**: Built-in `AIEnhancer` with local SLM support, pluggable `Enhancer` protocol, and [apcore-refinery](https://github.com/aiperceivable/apcore-refinery) for production use.
-- **📝 Surface Formatting**: Convert structured data into LLM-ready Markdown, SKILL.md, CLI table-rows, or canonical JSON.
+- **📝 Portable Presentation Contracts**: Convert modules to LLM-ready Markdown, SKILL.md, CLI table rows, canonical CSV/JSONL, or a byte-equivalent TUI view model.
+- **✅ Cross-SDK Conformance**: Shared fixtures keep Python, TypeScript, and Rust behaviour aligned where downstream consumers depend on identical output.
 - **📊 Byte-Equivalent Tabular Formatters** _(v0.7.0)_: `format_csv` / `format_jsonl` produce identical bytes across Python / TypeScript / Rust, asserted via a shared conformance corpus. Replaces per-SDK reimplementations that had diverged on header derivation, line endings, and nested-value serialization.
 
 ---
@@ -195,7 +197,7 @@ Key contract guarantees:
 - **Insertion-order keys** in JSONL output (Python `dict`, JS object order, Rust `serde_json` `preserve_order`).
 - **Optional UTF-8 BOM** on CSV via `bom=True` for Excel-locale users; default off for pipeline consumers.
 
-See [`docs/features/formatting.md`](docs/features/formatting.md) § Tabular Formats for the full contract and `conformance/fixtures/` for the shared test corpus.
+See [`docs/features/formatting.md`](docs/features/formatting.md) and [`docs/reference/conformance.md`](docs/reference/conformance.md) for the full presentation and compatibility contracts.
 
 > **YAML byte-equivalence is deferred.** Each idiomatic YAML library (PyYAML, js-yaml, serde_yaml_ng) emits different forms even for identical input; a custom canonical emitter is a planned follow-up. YAML output today is SDK-native and may differ across languages.
 
@@ -228,7 +230,7 @@ The mirror table also lives in
 
 | Module | Description |
 |--------|-------------|
-| `ScannedModule` | Canonical dataclass representing a scanned endpoint |
+| `ScannedModule` | Canonical model representing a discovered capability |
 | `BaseScanner` | Abstract base class for framework scanners |
 | `YAMLWriter` | Generates `.binding.yaml` files for `apcore.BindingLoader` |
 | `BindingLoader` | Parses `.binding.yaml` files back into `ScannedModule` objects (pure-data inverse of `YAMLWriter`); loose/strict modes; round-trip with `display`, `annotations`, `metadata` |
@@ -247,7 +249,7 @@ The mirror table also lives in
 | `Verifier` / `VerifyResult` | Protocol and result type for pluggable output verification |
 | `DisplayResolver` | Sparse binding.yaml display overlay — resolves surface-facing alias, description, guidance, tags into `metadata["display"]` |
 | `ConventionScanner` | Scans a `commands/` directory of plain Python files for public functions and converts them to `ScannedModule` instances with schema inferred from type annotations |
-| `OpenAPIScanner` / `derive_module_id` / `load_spec` _(v0.11.0)_ | Turns a whole OpenAPI 3.0/3.1 document into a `ScannedModule` list, one module per operation, with a byte-identical `module_id` derivation across all three SDKs. See [`docs/features/openapi-scanner.md`](docs/features/openapi-scanner.md). |
+| `OpenAPIScanner` / `derive_module_id` / `load_spec` _(v0.11.0)_ | Turns a whole OpenAPI 3.0/3.1 document into one `ScannedModule` per operation, with byte-identical module-ID derivation across all three SDKs. See [`docs/features/openapi-scanner.md`](docs/features/openapi-scanner.md). |
 | `TuiViewModel` / `modules_to_view_model` / `format_view_model` _(v0.11.0)_ | Byte-equivalent module-list view shape (columns, rows, filter/sort/color-by-tag semantics) shared by all three SDKs' table renderers. See [`docs/features/tui-view-model.md`](docs/features/tui-view-model.md). |
 | `RustWriter` | Rust-only: generates a `.rs` handler stub (`todo!(...)` body) per module, providing structural parity with `PythonWriter`/`TypeScriptWriter`. See [`docs/features/output-writers.md`](docs/features/output-writers.md#rustwriter). |
 
@@ -309,6 +311,7 @@ The follow-up plan is to standardize on caret semantics
 
 - **[Getting Started Guide](docs/getting-started.md)** — Installation and core usage
 - **[Features Overview](docs/features/overview.md)** — Detailed look at toolkit capabilities
+- **[Cross-SDK Conformance](docs/reference/conformance.md)** — Shared fixtures, compatibility tiers, and ownership rules
 - **[AI Enhancement Guide](docs/ai-enhancement.md)** — Enhancer protocol, built-in AIEnhancer, and apcore-refinery
 - **[Changelog](CHANGELOG.md)**
 
@@ -317,4 +320,3 @@ The follow-up plan is to standardize on caret semantics
 ## License
 
 Apache-2.0
-
