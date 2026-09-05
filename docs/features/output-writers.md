@@ -45,11 +45,11 @@ Generates individual `.binding.yaml` files for each scanned module. These files 
 
 Use [`BindingLoader`](binding-loader.md) for the inverse operation: reading `.binding.yaml` back into `ScannedModule`.
 
-## `PythonWriter` / `TypeScriptWriter`
+## `PythonWriter` / `TypeScriptWriter` / `RustWriter`
 
-Generates source files containing decorator-based wrapper functions. This is useful for migrating legacy code to the apcore decorator pattern without manual re-writing.
+Generates source files containing wrapper functions or handler stubs. `PythonWriter`/`TypeScriptWriter` are useful for migrating legacy code to the apcore decorator pattern without manual re-writing, wrapping an *existing* target function. `RustWriter` instead generates a fresh handler-stub file per module — see below.
 
-### Features
+### Features (`PythonWriter` / `TypeScriptWriter`)
 - **Auto-Decorators**: Generates the decorator with all extracted metadata.
 - **Target Integration**: Points to the original view function as the `target` of the module.
 - **Standard Formatting**: Produces clean, idiomatic code for the target language.
@@ -70,6 +70,19 @@ Generates source files containing decorator-based wrapper functions. This is use
 
     const writer = new TypeScriptWriter();
     writer.write(modules, "./generated_apcore", { dryRun: false });
+    ```
+
+### `RustWriter`
+
+Unlike `PythonWriter`/`TypeScriptWriter`, `RustWriter` does not wrap an existing target function — Rust has no dynamic-import equivalent to point a generated wrapper at. Instead, for each `ScannedModule` it writes a fresh `.rs` file (module-id dot-separated path converted to a directory hierarchy, e.g. `users.get_user` → `users/get_user.rs`) containing an `#[module(id = "...", description = "...")]`-annotated handler whose body is `todo!("Implement handler for {module_id}")` — a starting-point stub the caller fills in, not a ready-to-run implementation.
+
+=== "Rust"
+
+    ```rust
+    use apcore_toolkit::RustWriter;
+
+    let writer = RustWriter::new("./generated_apcore");
+    writer.write(&modules)?;
     ```
 
 ## Contract: PythonWriter.write
@@ -93,7 +106,7 @@ Generates source files containing decorator-based wrapper functions. This is use
 - pure: false (writes to filesystem unless dry_run=true)
 - thread_safe: true
 - idempotent: true (writing same modules twice produces same files)
-- availability: Python only — TypeScript writes TypeScript (TypeScriptWriter); Rust has no native code-gen writer
+- availability: Python only — TypeScript writes TypeScript (`TypeScriptWriter`); Rust writes Rust stubs (`RustWriter`, see below) rather than wrapping an existing target
 
 ---
 
@@ -116,7 +129,27 @@ Generates source files containing decorator-based wrapper functions. This is use
 - pure: false (writes to filesystem unless dryRun=true)
 - thread_safe: true
 - idempotent: true
-- availability: TypeScript only — Python writes Python (PythonWriter); Rust has no native code-gen writer
+- availability: TypeScript only — Python writes Python (`PythonWriter`); Rust writes Rust stubs (`RustWriter`, see below) rather than wrapping an existing target
+
+---
+
+## Contract: RustWriter.write
+
+### Inputs
+- `modules`: `&[ScannedModule]`, required
+
+### Errors
+- `WriteError` — file system write failure (directory creation or file write)
+
+### Returns
+- On success: `Result<Vec<WriteResult>, WriteError>` — one `WriteResult` per module; `path` points to the generated `.rs` stub file
+
+### Properties
+- async: false
+- pure: false (writes to filesystem)
+- thread_safe: true
+- idempotent: true (writing the same modules twice overwrites with identical stub content)
+- availability: Rust only — the generated stub body is `todo!(...)`, a starting point for the caller to implement, unlike `PythonWriter`/`TypeScriptWriter` which wrap an already-existing target function. Provides structural (not behavioral) parity with those two writers.
 
 ---
 
@@ -482,7 +515,7 @@ All built-in verifiers implement the `Verifier` protocol. Each reads the artifac
 - `module_id`: string, required — looked up in the supplied `registry`.
 
 #### Errors
-- None raised. Failure mode (`registry.get(module_id)` returns null/`None`) is returned as `VerifyResult(ok=False, error="Module \"<id>\" not found in registry")`. If the registry instance does not expose a `getModule` method, the verifier returns `VerifyResult(ok=False, error="Registry does not have a getModule method")`.
+- None raised. Failure mode (`registry.get(module_id)` returns null/`None`) is returned as `VerifyResult(ok=False, error="Module \"<id>\" not found in registry")`. If the registry instance does not expose a `get` method, the verifier returns `VerifyResult(ok=False, error="Registry does not have a get method")` (fixed in v0.9.0 — the verifier previously called the nonexistent `getModule()`).
 
 #### Returns
 - On success: `VerifyResult(ok=True)`.
@@ -829,14 +862,14 @@ Each `WriteResult` has `module_id`, `path`, `ok`, `verified`, `verification_erro
 - `dry_run`: bool, optional, default=false — if true, no modules are registered; returns what would be registered
 - `verify`: bool, optional, default=false — if true, runs built-in `RegistryVerifier` after each registration
 - `verifiers`: list of verifier objects, optional — additional custom verifiers
-- `allowed_prefixes` / `allowedPrefixes`: list of str, optional, default=`None`/`undefined` (no restriction) — security allow-list of permitted module-id target prefixes. When set, each module's resolved target is validated against the list before registration; a target outside the allow-list is rejected as a per-module failure (see Errors). Defence-in-depth against arbitrary-code-execution via attacker-influenced targets. Present and consistent across all three SDKs (`registry_writer.py`, `registry-writer.ts`, `registry_writer.rs`).
+- `allowed_prefixes` / `allowedPrefixes`: list of str, optional, default=`None`/`undefined` (no restriction) — security allow-list of permitted module-id target prefixes. When set, each module's resolved target is validated against the list before registration; a target outside the allow-list is rejected as a per-module failure (see Errors). Defence-in-depth against arbitrary-code-execution via attacker-influenced targets. Present in all three SDKs (`registry_writer.py`, `registry-writer.ts`, `registry_writer.rs`) — but the matching semantics are language-specific, not portable values; see [`pydantic.md` § `resolve_target` / `resolveTarget`](pydantic.md#contract-resolve_target-resolvetarget) for exactly what a "prefix" means in each language.
 
 > **Note:** `RegistryWriter.write` does **not** accept an `errorMode` option. Unlike the file writers, it never aborts the batch on a per-module failure — see Errors below. The `errorMode: "throw" | "collect"` option belongs to the file writers (`YAMLWriter` / `TypeScriptWriter`), documented under their Contracts.
 
 ### Errors
 - `RegistryWriter.write` **collects** per-module failures rather than raising — this is identical across Python, TypeScript, and Rust. If target resolution, the `allowed_prefixes` check, or `registry.register` fails for a module, that module gets a failed `WriteResult` (`verified=false`, `verification_error`/`verificationError` set) and the batch **continues**; one bad module never aborts the rest.
 - Verifier results are likewise wrapped into `WriteResult.verification_error` (Python/Rust) / `WriteResult.verificationError` (TypeScript); verifier exceptions are caught and stored, not re-raised.
-- Rust returns `Result<Vec<WriteResult>, ...>` for signature parity, but per-module registration failures are reported via failed `WriteResult` entries inside `Ok(...)`, not via the outer `Err`.
+- Rust's `write` returns a bare `Vec<WriteResult>` (not wrapped in `Result`) — per-module registration failures are reported exclusively via failed `WriteResult` entries, the same mechanism Python/TypeScript use. There is no top-level error channel in any of the three SDKs; `WriteResult.verified` is always the source of truth.
 
 ### Returns
 - On success: list of `WriteResult` — one per module; `path` is `None`/`null` (no file written)
