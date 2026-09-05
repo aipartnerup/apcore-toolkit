@@ -1,3 +1,12 @@
+<!--
+  NOTE: this file is overwritten by `.github/workflows/deploy-docs.yml`
+  ("Copy README as index page") on every documentation-site deploy. Edits
+  made here are NOT what readers of the published site see — edit
+  README.md instead if you want the site homepage to change. This file
+  is kept only so `mkdocs serve` has something to render locally without
+  running the CI prep step first.
+-->
+
 # apcore Toolkit
 
 The **apcore Toolkit** is a multi-language SDK for scanning, transforming, and registering AI-callable modules in the [apcore](https://github.com/aiperceivable/apcore) ecosystem.
@@ -24,8 +33,13 @@ See the [Getting Started](getting-started.md) guide.
 ## Features
 
 - [Scanning](features/scanning.md)
+- [OpenAPI Integration](features/openapi.md)
+- [OpenAPI Scanner](features/openapi-scanner.md)
+- [Schema Utilities](features/pydantic.md)
 - [Output Writers](features/output-writers.md)
 - [Binding Loader](features/binding-loader.md)
+- [Formatting](features/formatting.md)
+- [AI Enhancement](ai-enhancement.md)
 - [Display Overlay](features/display-overlay.md)
 - [Convention Scanning](features/convention-scanning.md)
-- [AI Enhancement](ai-enhancement.md)
+- [TUI View Model](features/tui-view-model.md)
