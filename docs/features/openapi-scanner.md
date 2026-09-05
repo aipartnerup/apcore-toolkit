@@ -715,6 +715,9 @@ scheme are still resolved by `deduplicate_ids`.
 | **Billion-laughs / deeply nested `$ref`** | Already bounded by the shipped depth limit of 16 (see [`deep_resolve_refs`](openapi.md#contract-deep_resolve_refs)). |
 | **Circular `$ref`** | Same depth limit; terminates rather than hanging. |
 | **Prototype pollution (TypeScript)** | Already handled by the shipped `safe-keys` guard in `resolve_ref` (blocks `__proto__`, `constructor`, `prototype`). Inherited at no cost. |
+
+!!! note "This guard is a known, intentional TS-only source of cross-SDK output divergence"
+    Because the guard blocks `$ref` path segments and schema/parameter keys literally named `__proto__`, `constructor`, or `prototype`, a spec using one of those names (valid JSON, if unusual) produces a *different* `scan()` result in TypeScript (the field is dropped, with a warning) than in Python or Rust (the field is resolved/kept normally, since neither language is vulnerable to the underlying attack). This is out of scope for the byte-identical conformance corpus below — no fixture exercises a `__proto__`-named schema key — and is not a bug to reconcile: the vulnerability class this guard defends against is JS-runtime-specific.
 | **Spec-driven credential leakage** | The scanner MUST NOT copy `securitySchemes`, `servers[].variables` defaults, or any `example` value containing credentials into `metadata`. Only the fields enumerated in [Execution Contract](#execution-contract-metadata-keys) are emitted. |
 | **Enormous specs** | A spec with tens of thousands of operations produces a module per operation. No limit is imposed in V1, but consumers should apply `include`/`exclude` filters. Noted in [Risks](#risks). |
 
