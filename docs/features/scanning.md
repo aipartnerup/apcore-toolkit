@@ -12,7 +12,7 @@ The `BaseScanner` ABC (Abstract Base Class) provides a consistent interface and 
 |--------|-------------|
 | `scan(**kwargs)` | **Abstract.** Framework-specific implementation of the scan logic. |
 | `get_source_name()` | **Abstract.** Returns the scanner's name (e.g., "django-ninja"). |
-| `extract_docstring(func)` | Convenience wrapper around `apcore.parse_docstring()`. |
+| `extract_docstring(func)` | **TypeScript only.** Convenience wrapper around a docstring/comment parser. Python callers use `apcore.parse_docstring()` directly (no toolkit wrapper); Rust has no runtime-introspectable doc-comment equivalent to wrap. |
 | `filter_modules(...)` | Apply regex-based include/exclude filters to module IDs. |
 | `infer_annotations_from_method(...)` | Infer `readonly`, `destructive`, or `idempotent` from HTTP methods. |
 | `deduplicate_ids(...)` | Automatically resolve duplicate module IDs by appending suffixes (`_2`, `_3`). |
@@ -74,7 +74,7 @@ Leverage the framework's native schema system:
 - **Python**: Pydantic models, Django serializers, marshmallow schemas
 - **TypeScript**: Zod schemas, class-validator decorators, interfaces
 
-Use the toolkit's `flatten_pydantic_params()` or `flattenParams()` to convert nested models into flat schemas when needed.
+Use the toolkit's `flatten_pydantic_params()` (Python) to convert nested models into flat schemas when needed. TypeScript's object-argument idiom is already flat and needs no equivalent wrapper — see [`pydantic.md`](pydantic.md) for the full cross-SDK rationale.
 
 ### Phase 4: Discover Existing API Contracts
 
@@ -234,7 +234,7 @@ For deeper behavioral analysis beyond HTTP methods, see [Phase 5](#phase-5-infer
 
 ### Properties
 - async: false
-- pure: false (mutates warnings field of ScannedModule)
+- pure: true — all three SDKs return new `ScannedModule` instances (Python via `dataclasses.replace`, TypeScript via cloning, Rust by consuming and rebuilding the `Vec`) rather than mutating the input in place
 
 ---
 
@@ -309,9 +309,11 @@ Rationale: the mapping mirrors RFC 9110 §9.2 (safe methods → `readonly`) and 
 
 ## Contract: BaseScanner.extract_docstring
 
+> **TypeScript only.** Python has no `extract_docstring` method on `BaseScanner` — callers use `apcore.parse_docstring()` directly. Rust has no equivalent: doc comments (`///`) are not runtime-introspectable the way a Python docstring or a JS function's source text is, so there is no natural wrapper to provide.
+
 ### Inputs
-- `func`: callable (Python) / function reference (TypeScript), required — the function whose docstring to extract
-- `method`: string, optional (TypeScript only) — HTTP method hint for schema enrichment
+- `func`: function reference, required — the function whose docstring to extract
+- `method`: string, optional — HTTP method hint for schema enrichment
 
 ### Errors
 - None raised — returns empty defaults if the function has no docstring or introspection fails
