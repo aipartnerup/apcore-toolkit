@@ -247,6 +247,9 @@ The mirror table also lives in
 | `Verifier` / `VerifyResult` | Protocol and result type for pluggable output verification |
 | `DisplayResolver` | Sparse binding.yaml display overlay — resolves surface-facing alias, description, guidance, tags into `metadata["display"]` |
 | `ConventionScanner` | Scans a `commands/` directory of plain Python files for public functions and converts them to `ScannedModule` instances with schema inferred from type annotations |
+| `OpenAPIScanner` / `derive_module_id` / `load_spec` _(v0.11.0)_ | Turns a whole OpenAPI 3.0/3.1 document into a `ScannedModule` list, one module per operation, with a byte-identical `module_id` derivation across all three SDKs. See [`docs/features/openapi-scanner.md`](docs/features/openapi-scanner.md). |
+| `TuiViewModel` / `modules_to_view_model` / `format_view_model` _(v0.11.0)_ | Byte-equivalent module-list view shape (columns, rows, filter/sort/color-by-tag semantics) shared by all three SDKs' table renderers. See [`docs/features/tui-view-model.md`](docs/features/tui-view-model.md). |
+| `RustWriter` | Rust-only: generates a `.rs` handler stub (`todo!(...)` body) per module, providing structural parity with `PythonWriter`/`TypeScriptWriter`. See [`docs/features/output-writers.md`](docs/features/output-writers.md#rustwriter). |
 
 ### Per-language module availability (tri-language parity)
 
