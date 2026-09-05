@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.11.0] - 2026-09-04
+## [0.11.0] - 2026-09-05
 
 Feature release across Python, TypeScript, and Rust: ships two previously-proposed Tier-1 toolkit features — **OpenAPI Scanner** and **TUI View Model** — plus two blocking `HTTPProxyRegistryWriter` defect fixes in `apcore-toolkit-rust`. `docs/features/device-auth.md` remains a design proposal and does not ship in this release.
 
@@ -11,6 +11,10 @@ Feature release across Python, TypeScript, and Rust: ships two previously-propos
 - **OpenAPI Scanner** (`OpenAPIScanner`, `derive_module_id`, `load_spec`) — turns a whole OpenAPI 3.0/3.1 document into a `ScannedModule` list, one module per operation, with a byte-identical `module_id` derivation across all three SDKs. Built on the already-shipped `extract_input_schema` / `extract_output_schema` / `deep_resolve_refs` primitives. See [`docs/features/openapi-scanner.md`](docs/features/openapi-scanner.md). Verified against the published Swagger Petstore OpenAPI 3.0 reference spec — byte-identical `ScannedModule` output across all three SDKs, in addition to the shared 24-case conformance corpus (`conformance/fixtures/openapi_scan.json`).
 - **TUI View Model** (`TuiViewModel`, `modules_to_view_model`, `format_view_model`) — lifts the module-list view shape (columns, rows, filter/sort/color-by-tag semantics) into a Tier-1 byte-equivalent structure, ending three independent per-SDK table-rendering implementations. See [`docs/features/tui-view-model.md`](docs/features/tui-view-model.md). Asserted byte-identical via the shared 11-case conformance corpus (`conformance/fixtures/view_model.json`), and cross-checked end-to-end against the Petstore-scanned modules above (identical grouped/filtered/sorted output across all three SDKs).
 - **`output-writers.md` § `metadata` Contract** — documents the previously-unspecified `http_method` / `url_path` metadata keys `HTTPProxyRegistryWriter` reads, including the uppercase requirement and the method-driven body-vs-query rule.
+
+### Changed
+
+- **Required apcore floor raised to 0.29.0** across all three SDKs. apcore 0.29.0 is approval- and ACL-layer work plus a large documentation-conformance pass. `ApprovalRequest` gains `caller_id` and `action` (additive, spec v1.32.0 decision D-03); `CancelToken.raise_if_cancelled()` lands in Python and TypeScript as an additive alias for `check()`; and the ACL pattern array (`callers` / `targets`) has its shape closed at every entry point — an empty array, `["$or"]`, `["$not"]` and the multi-operand `["$not", p1, p2]` are now refused rather than silently matching nothing, which under `default_effect: allow` had been permitting the very call the rule named ([apcore#112](https://github.com/aiperceivable/apcore/issues/112)). Per-SDK it additionally carries `AsyncTaskManager.startReaper()` returning a `Promise` in TypeScript, and in Rust `APCore::on`/`off` returning `Result` plus `ACLRule` becoming `#[non_exhaustive]`. None of it touches the Registry / Module / annotations surface this toolkit uses in any of the three languages — confirmed per-SDK by grepping every apcore import in `src/` against the symbols apcore 0.29.0 changed. No code or API changes; all three test suites pass unmodified against apcore 0.29.0 (Python 760, TypeScript 657, Rust 477 lib + 13 integration + 8 doc).
 
 ### Fixed
 
