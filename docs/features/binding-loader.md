@@ -278,39 +278,44 @@ during recursive traversal.
 
 The TypeScript implementation splits binding loading into two classes for browser/edge runtime compatibility:
 
-- **`BindingParser`** — runtime-neutral in-memory parser. Accepts raw YAML string content and returns parsed `BindingDocument` objects. Has no filesystem dependency. Available via both the main and browser entry points.
-- **`parseBindingDocument(content: string): BindingDocument`** — standalone function wrapping BindingParser for callers that don't need class instantiation.
-- **`BindingLoader`** — extends BindingParser with Node.js filesystem I/O (`load(path, strict?, recursive?)`). Available via the main entry point only.
+- **`BindingParser`** — runtime-neutral in-memory parser. Accepts **pre-parsed** binding data (e.g. the result of `yaml.load()`, or a JSON response already parsed via `fetch()` + `.json()`) and returns `ScannedModule[]` directly. Has no filesystem dependency and does **not** parse YAML text itself — YAML-string parsing only happens in `BindingLoader.load()` (Node-only, via `js-yaml`), one layer up. Available via both the main and browser entry points.
+- **`parseBindingDocument(raw, options?, filePath?): ScannedModule[]`** — standalone function wrapping `BindingParser.loadData` for callers that don't need class instantiation; the optional `filePath` is embedded in any `BindingLoadError` thrown, for error context. Available via both the main and browser entry points.
+- **`BindingLoader`** — extends `BindingParser`, adding the Node.js filesystem-reading entry point (`load(path, strict?, recursive?)`) that reads a file, parses it as YAML via `js-yaml`, and delegates to the inherited parsing logic. Available via the main entry point only.
 
-### Contract: BindingParser.parse (TypeScript only)
+There is no `BindingDocument` type — both `BindingParser.loadData` and `parseBindingDocument` return `ScannedModule[]` directly, with no intermediate representation.
+
+### Contract: BindingParser.loadData (TypeScript only)
 
 #### Inputs
-- `content`: string, required — the raw YAML text of a binding document (the contents of a `.binding.yaml` file). Must be valid YAML and the top-level value must be a mapping.
+- `data`: pre-parsed object, required — must be a mapping with a `bindings` key holding an array of binding entries (e.g. `{ bindings: [...] }`). **Not** a raw YAML/JSON string — the caller parses that first.
+- `options`: `BindingLoadOptions`, optional — `{ strict?: boolean }` (see the shared `strict`/loose-mode rules above; `recursive` is ignored here, it only applies to `BindingLoader.load`).
 
 #### Errors
-- `BindingLoadError` (TypeScript throws) — content is not valid YAML, the top-level value is not a mapping, the `bindings` key is missing or not an array, an entry is missing required fields, or strict-mode validation fails.
+- `BindingLoadError` (TypeScript throws) — the top-level value is not a mapping, the `bindings` key is missing or not an array, an entry is missing required fields, or strict-mode validation fails.
 
 #### Returns
-- On success: `BindingDocument` (a parsed in-memory representation listing all binding entries).
+- On success: `ScannedModule[]`.
 - On failure: throws `BindingLoadError`.
 
 #### Properties
 - async: false
-- pure: true (no filesystem access — operates purely on the input string)
+- pure: true (no filesystem access — operates purely on the input value)
 - thread_safe: true
 
 ### Contract: parseBindingDocument (TypeScript only)
 
-A standalone function that constructs a transient `BindingParser` and calls `parse(content)` once. Provided so callers that do not need to retain a parser instance can avoid the boilerplate. Behaviour, errors, and properties are identical to `BindingParser.parse` above — this is a thin wrapper.
+A standalone function wrapping `BindingParser.loadData` for callers that don't need to retain a parser instance. Behaviour, errors, and properties are identical to `BindingParser.loadData` above, plus an optional `filePath` for error context.
 
 #### Inputs
-- `content`: string, required — see `BindingParser.parse`.
+- `raw`: pre-parsed object, required — see `BindingParser.loadData`.
+- `options`: `BindingLoadOptions`, optional — see `BindingParser.loadData`.
+- `filePath`: string or `null`, optional, default `null` — embedded in any `BindingLoadError` thrown for this call, so a caller that knows which file/endpoint a document came from can get that context in the error.
 
 #### Errors
-- `BindingLoadError` (TypeScript throws) — see `BindingParser.parse`.
+- `BindingLoadError` (TypeScript throws) — see `BindingParser.loadData`.
 
 #### Returns
-- On success: `BindingDocument`.
+- On success: `ScannedModule[]`.
 - On failure: throws `BindingLoadError`.
 
 #### Properties
