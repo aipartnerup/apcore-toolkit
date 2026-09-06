@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.1] - 2026-09-06
+
+Patch release across Python, TypeScript, and Rust: raises the required apcore floor to `0.30.0`.
+
+### Changed
+
+- **Required apcore floor raised to 0.30.0** across all three SDKs. apcore 0.30.0 is confined to the `Config`/`BindingLoader` layer: the §9.2.2 deprecation-warning cadence is now spec-normative (once per configuration load, never once per process — TypeScript additionally gains `Config.projectRoot`, `userLevelConfigPaths()`, and a new out-of-tree-relative-path deprecation notice building toward it); a set-but-empty path-typed `APCORE_*` override (e.g. `APCORE_ACL_ROOT=`) is now discarded instead of silently resolving to the working directory; the missing-binding-directory error names a directory rather than a file; and `bindings.dir` / `bindings.pattern` become canonical defaults reachable from `Config.get()` in all three SDKs. None of it touches the Registry / Module / annotations surface this toolkit uses — confirmed per-SDK by grepping every apcore import in `src/` against the symbols apcore 0.30.0 changed: no `Config`, `BindingLoader`, `ACL`, `ApprovalRequest`, `CancelToken`, `ExecutionPolicy`, or `Executor` reference exists in any of the three toolkits. No code or API changes; all three test suites pass unmodified against apcore 0.30.0 (Python 798, TypeScript 680, Rust 485 lib + 13 integration + 8 doc).
+
 ## [0.11.0] - 2026-09-05
 
 Feature release across Python, TypeScript, and Rust: ships two previously-proposed Tier-1 toolkit features — **OpenAPI Scanner** and **TUI View Model** — plus two blocking `HTTPProxyRegistryWriter` defect fixes in `apcore-toolkit-rust`. `docs/features/device-auth.md` remains a design proposal and does not ship in this release.
