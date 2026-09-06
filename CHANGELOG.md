@@ -2,15 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.11.1] - 2026-09-06
+## [0.11.0] - 2026-09-06
 
 Patch release across Python, TypeScript, and Rust: raises the required apcore floor to `0.30.0`.
-
-### Changed
-
-- **Required apcore floor raised to 0.30.0** across all three SDKs. apcore 0.30.0 is confined to the `Config`/`BindingLoader` layer: the §9.2.2 deprecation-warning cadence is now spec-normative (once per configuration load, never once per process — TypeScript additionally gains `Config.projectRoot`, `userLevelConfigPaths()`, and a new out-of-tree-relative-path deprecation notice building toward it); a set-but-empty path-typed `APCORE_*` override (e.g. `APCORE_ACL_ROOT=`) is now discarded instead of silently resolving to the working directory; the missing-binding-directory error names a directory rather than a file; and `bindings.dir` / `bindings.pattern` become canonical defaults reachable from `Config.get()` in all three SDKs. None of it touches the Registry / Module / annotations surface this toolkit uses — confirmed per-SDK by grepping every apcore import in `src/` against the symbols apcore 0.30.0 changed: no `Config`, `BindingLoader`, `ACL`, `ApprovalRequest`, `CancelToken`, `ExecutionPolicy`, or `Executor` reference exists in any of the three toolkits. No code or API changes; all three test suites pass unmodified against apcore 0.30.0 (Python 798, TypeScript 680, Rust 485 lib + 13 integration + 8 doc).
-
-## [0.11.0] - 2026-09-05
 
 Feature release across Python, TypeScript, and Rust: ships two previously-proposed Tier-1 toolkit features — **OpenAPI Scanner** and **TUI View Model** — plus two blocking `HTTPProxyRegistryWriter` defect fixes in `apcore-toolkit-rust`. `docs/features/device-auth.md` remains a design proposal and does not ship in this release.
 
@@ -23,6 +17,8 @@ Feature release across Python, TypeScript, and Rust: ships two previously-propos
 ### Changed
 
 - **Required apcore floor raised to 0.29.0** across all three SDKs. apcore 0.29.0 is approval- and ACL-layer work plus a large documentation-conformance pass. `ApprovalRequest` gains `caller_id` and `action` (additive, spec v1.32.0 decision D-03); `CancelToken.raise_if_cancelled()` lands in Python and TypeScript as an additive alias for `check()`; and the ACL pattern array (`callers` / `targets`) has its shape closed at every entry point — an empty array, `["$or"]`, `["$not"]` and the multi-operand `["$not", p1, p2]` are now refused rather than silently matching nothing, which under `default_effect: allow` had been permitting the very call the rule named ([apcore#112](https://github.com/aiperceivable/apcore/issues/112)). Per-SDK it additionally carries `AsyncTaskManager.startReaper()` returning a `Promise` in TypeScript, and in Rust `APCore::on`/`off` returning `Result` plus `ACLRule` becoming `#[non_exhaustive]`. None of it touches the Registry / Module / annotations surface this toolkit uses in any of the three languages — confirmed per-SDK by grepping every apcore import in `src/` against the symbols apcore 0.29.0 changed. No code or API changes; all three test suites pass unmodified against apcore 0.29.0 (Python 760, TypeScript 657, Rust 477 lib + 13 integration + 8 doc).
+
+- **Required apcore floor raised to 0.30.0** across all three SDKs. apcore 0.30.0 is confined to the `Config`/`BindingLoader` layer: the §9.2.2 deprecation-warning cadence is now spec-normative (once per configuration load, never once per process — TypeScript additionally gains `Config.projectRoot`, `userLevelConfigPaths()`, and a new out-of-tree-relative-path deprecation notice building toward it); a set-but-empty path-typed `APCORE_*` override (e.g. `APCORE_ACL_ROOT=`) is now discarded instead of silently resolving to the working directory; the missing-binding-directory error names a directory rather than a file; and `bindings.dir` / `bindings.pattern` become canonical defaults reachable from `Config.get()` in all three SDKs. None of it touches the Registry / Module / annotations surface this toolkit uses — confirmed per-SDK by grepping every apcore import in `src/` against the symbols apcore 0.30.0 changed: no `Config`, `BindingLoader`, `ACL`, `ApprovalRequest`, `CancelToken`, `ExecutionPolicy`, or `Executor` reference exists in any of the three toolkits. No code or API changes; all three test suites pass unmodified against apcore 0.30.0 (Python 798, TypeScript 680, Rust 485 lib + 13 integration + 8 doc).
 
 ### Fixed
 
